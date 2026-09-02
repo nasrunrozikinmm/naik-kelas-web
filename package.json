@@ -1,0 +1,51 @@
+{
+  "name": "naik-kelas-web",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "dev": "next dev --turbopack --port 3030",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0",
+    "@hookform/resolvers": "^5.7.1",
+    "@mui/icons-material": "^6.0.0",
+    "@mui/material": "^6.0.0",
+    "@mui/material-nextjs": "^6.0.0",
+    "@mui/x-data-grid": "^9.11.0",
+    "@reduxjs/toolkit": "^2.2.0",
+    "axios": "^1.7.0",
+    "dayjs": "^1.11.0",
+    "next": "^15.0.0",
+    "next-themes": "^0.4.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.52.0",
+    "react-redux": "^9.1.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "^6.4.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.5.4",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  }
+}
