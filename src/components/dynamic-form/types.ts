@@ -1,0 +1,67 @@
+import * as z from 'zod';
+import { ControllerRenderProps, ControllerFieldState, UseFormStateReturn } from 'react-hook-form';
+import { ReactNode } from 'react';
+
+export type FieldType = 
+  // Basic
+  | 'text' | 'email' | 'password' | 'number' | 'tel' | 'url'
+  // Selection
+  | 'select' | 'radio' | 'multi-select' | 'checkbox' | 'multi-checkbox' | 'switch' | 'multi-switch'
+  // Date & Time
+  | 'date' | 'time' | 'datetime'
+  // Advanced
+  | 'slider' | 'rating' | 'code' | 'editor'
+  // Media
+  | 'images' | 'upload' | 'upload-box' | 'upload-avatar'
+  // Relational
+  | 'autocomplete' | 'country-select'
+  // Array
+  | 'field-array' | 'string-list'
+  // Custom
+  | 'signature' | 'custom';
+
+export interface FieldValidation {
+  required?: boolean;
+  requiredMessage?: string;
+  min?: number;
+  minMessage?: string;
+  max?: number;
+  maxMessage?: string;
+  pattern?: RegExp;
+  patternMessage?: string;
+  // Custom zod refinement function if needed
+  custom?: (val: unknown) => boolean;
+  customMessage?: string;
+}
+
+export interface FieldConfig {
+  name: string;
+  label: string;
+  type: FieldType;
+  placeholder?: string;
+  defaultValue?: unknown;
+  validation?: FieldValidation;
+  // For select/radio/checkbox options
+  options?: { label: string; value: string | number }[];
+  // For layout (e.g. grid spans)
+  gridProps?: { xs?: number; sm?: number; md?: number; lg?: number; xl?: number };
+  
+  // Specific properties for advanced types
+  multiple?: boolean;
+  accept?: string; // for file uploads
+  minRows?: number; // for multiline text
+  
+  // For 'custom' FieldType
+  render?: (props: {
+    field: ControllerRenderProps<Record<string, unknown>, string>;
+    fieldState: ControllerFieldState;
+    formState: UseFormStateReturn<Record<string, unknown>>;
+  }) => ReactNode;
+}
+
+export interface FormConfig {
+  fields: FieldConfig[];
+  submitLabel?: string;
+  // If provided, generates a custom schema based on Zod object
+  customSchema?: z.ZodTypeAny; 
+}
