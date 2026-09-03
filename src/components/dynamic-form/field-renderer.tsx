@@ -35,11 +35,14 @@ interface FieldRendererProps {
 /**
  * Shared styling for form inputs to give a modern, subtle tinted background
  * that transitions cleanly on hover, focus, and disabled states.
+ * Uses a soft, low-contrast tint (rgba(240, 243, 255, 0.35)) so it blends smoothly
+ * and subtly against pure white card surfaces without looking stark.
  */
 const getOutlinedInputSx = (minRows?: number) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: '10px',
     backgroundColor: 'var(--color-surface-container-low, #f0f3ff)',
+    backgroundColor: 'rgba(240, 243, 255, 0.35)',
     transition: 'all 0.2s ease-in-out',
     boxSizing: 'border-box',
     ...(minRows
@@ -47,6 +50,7 @@ const getOutlinedInputSx = (minRows?: number) => ({
       : { height: 56, minHeight: 56 }),
     '& .MuiOutlinedInput-notchedOutline': {
       borderColor: 'var(--color-outline-variant, #c3c5d7)',
+      borderColor: 'rgba(195, 197, 215, 0.55)',
       borderWidth: '1px',
       transition: 'border-color 0.2s, border-width 0.2s',
     },
@@ -59,6 +63,7 @@ const getOutlinedInputSx = (minRows?: number) => ({
     '&.Mui-focused': {
       backgroundColor: 'var(--color-surface-container-lowest, #ffffff)',
       boxShadow: '0 0 0 3px rgba(0, 63, 177, 0.12)',
+      boxShadow: '0 0 0 3px rgba(0, 63, 177, 0.08)',
       '& .MuiOutlinedInput-notchedOutline': {
         borderColor: 'var(--color-primary, #003fb1)',
         borderWidth: '1.5px',
@@ -66,9 +71,26 @@ const getOutlinedInputSx = (minRows?: number) => ({
     },
     '&.Mui-disabled': {
       backgroundColor: 'rgba(0, 0, 0, 0.04)',
+      backgroundColor: 'rgba(0, 0, 0, 0.025)',
       opacity: 0.85,
       '& .MuiOutlinedInput-notchedOutline': {
         borderColor: 'rgba(195, 197, 215, 0.6)',
+        borderColor: 'rgba(195, 197, 215, 0.35)',
+      },
+    },
+    '.dark &': {
+      backgroundColor: 'rgba(30, 41, 59, 0.35)',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'rgba(71, 85, 105, 0.5)',
+      },
+      '&:hover': {
+        backgroundColor: 'rgba(30, 41, 59, 0.6)',
+      },
+      '&.Mui-focused': {
+        backgroundColor: 'rgba(30, 41, 59, 0.7)',
+      },
+      '&.Mui-disabled': {
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
       },
     },
   },
@@ -161,8 +183,10 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
                   py: 0.5,
                   borderRadius: '10px',
                   backgroundColor: 'var(--color-surface-container-low, #f0f3ff)',
+                  backgroundColor: 'rgba(240, 243, 255, 0.35)',
                   border: '1px solid',
                   borderColor: 'var(--color-outline-variant, #c3c5d7)',
+                  borderColor: 'rgba(195, 197, 215, 0.45)',
                   display: 'inline-flex',
                   alignItems: 'center',
                   transition: 'all 0.15s ease-in-out',
@@ -366,9 +390,11 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
               p: 3,
               border: '1.5px dashed',
               borderColor: isError ? 'var(--color-error, #ba1a1a)' : 'var(--color-outline-variant, #c3c5d7)',
+              borderColor: isError ? 'var(--color-error, #ba1a1a)' : 'rgba(195, 197, 215, 0.55)',
               borderRadius: '10px',
               textAlign: 'center',
               backgroundColor: 'var(--color-surface-container-low, #f0f3ff)',
+              backgroundColor: 'rgba(240, 243, 255, 0.35)',
               transition: 'all 0.2s ease-in-out',
               minHeight: 110,
               display: 'flex',
