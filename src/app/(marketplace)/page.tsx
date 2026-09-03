@@ -9,6 +9,7 @@ import { MentorSpotlight } from "@/components/marketplace/MentorSpotlight";
 import { CardSkeleton } from "@/components/common/SkeletonLoader";
 import { apiClient } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
+import { mockFeaturedCatalogs } from "@/lib/mock/data";
 import type { CatalogCardModel, Category } from "@/types/domain";
 
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
@@ -17,30 +18,73 @@ import ForumIcon from "@mui/icons-material/Forum";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
+function enrichCatalogWithTalent(c: any): CatalogCardModel {
+  const match = mockFeaturedCatalogs.find(
+    (m) =>
+      m.id === c.id ||
+      m.talent_profile_id === c.talent_profile_id ||
+      m.title.toLowerCase() === c.title?.toLowerCase()
+  );
+
+  return {
+    ...c,
+    category: c.category?.name || c.category || match?.category || "Umum",
+    excerpt: c.excerpt || c.description || match?.excerpt || "Bimbingan terstruktur bersama mentor terverifikasi.",
+    image: c.image || match?.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
+    talentName: c.talent_profile?.display_name || c.talentName || match?.talentName || "Dr. Amanda Wijaya, M.Sc.",
+    talentAvatar: c.talent_profile?.avatar_url || c.talentAvatar || match?.talentAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400",
+    talentTitle: c.talent_profile?.expertise || c.talentTitle || match?.talentTitle || "Alumni Oxford University",
+    institution: c.institution || match?.institution || "Awardee LPDP Luar Negeri",
+    talentBio: c.talent_profile?.bio || c.talentBio || match?.talentBio,
+    talentExpertise: c.talent_profile?.languages || c.talentExpertise || match?.talentExpertise,
+    talentRating: c.talent_profile?.rating || c.rating || match?.talentRating || 4.95,
+    talentReviewsCount: c.reviewsCount || match?.talentReviewsCount || 128,
+    talentSessionsCount: c.talent_profile?.total_sales || c.soldCount || match?.talentSessionsCount || 310,
+    talentExperienceYears: c.talent_profile?.experience_years || match?.talentExperienceYears || 5,
+    talentLanguages: match?.talentLanguages || ["Bahasa Indonesia", "English (Fluent)"],
+    isVerified: c.talent_profile?.verification_status === "verified" || (c.isVerified ?? match?.isVerified ?? true),
+    talent_profile_id: c.talent_profile_id || match?.talent_profile_id || `mentor-${c.id || "default"}`,
+    rating: c.rating || match?.rating || 4.9,
+    reviewsCount: c.reviewsCount || match?.reviewsCount || 128
+  };
+}
+
 export default function MarketplacePage() {
-  const [catalogs, setCatalogs] = useState<CatalogCardModel[]>([]);
+  const [catalogs, setCatalogs] = useState<CatalogCardModel[]>(mockFeaturedCatalogs);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
-      setLoading(true);
       try {
         const [catRes, cataRes] = await Promise.all([
-          apiClient.get(endpoints.categories.list),
-          apiClient.get(`${endpoints.catalog.list}?status=published`)
+          apiClient.get(endpoints.categories.list).catch(() => null),
+          apiClient.get(`${endpoints.catalog.list}?status=published`).catch(() => null)
         ]);
 
         if (isMounted) {
-          setCategories(catRes.data?.data || []);
-          setCatalogs(cataRes.data?.data || []);
+          const apiCats = catRes?.data?.data;
+          const apiCatalogs = cataRes?.data?.data;
+
+          if (apiCats && Array.isArray(apiCats) && apiCats.length > 0) {
+            setCategories(apiCats);
+          }
+
+          if (apiCatalogs && Array.isArray(apiCatalogs) && apiCatalogs.length > 0) {
+            setCatalogs(apiCatalogs.map(enrichCatalogWithTalent));
+          } else {
+            setCatalogs(mockFeaturedCatalogs);
+          }
         }
       } catch (error) {
-        console.error("Failed to fetch marketplace data", error);
+        console.warn("Using fallback marketplace data", error);
+        if (isMounted) {
+          setCatalogs(mockFeaturedCatalogs);
+        }
       } finally {
         if (isMounted) {
           setLoading(false);

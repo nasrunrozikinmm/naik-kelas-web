@@ -93,9 +93,6 @@ export interface CatalogCardModel {
   talent_profile_id?: string;
   category_id?: string;
   description?: string;
-  isVerified?: boolean;
-  mentorTitle?: string;
-  institution?: string;
   sessionsCount?: number;
   talentProfile?: TalentProfileInfo;
 }

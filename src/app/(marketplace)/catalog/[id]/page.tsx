@@ -54,19 +54,11 @@ export default function CatalogDetailPage({ params }: Props) {
             title: c.title,
             type: c.type,
             price: c.price,
-            category: c.category || "Pendidikan",
-            excerpt: c.description || c.title,
-            description: c.description,
-            image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
             category: c.category?.name || c.category || mockMatch?.category || "Pendidikan",
             excerpt: c.description || mockMatch?.excerpt || c.title,
             description: c.description || mockMatch?.description || mockMatch?.excerpt,
             image: c.image || mockMatch?.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
             badge: { label: c.type === "live_session" ? "Sesi Live" : c.type === "mentoring" ? "Mentoring" : "Kursus", variant: "primary" },
-            talentName: c.talent_profile_id ? `Mentor ${c.talent_profile_id.substring(0, 5)}` : "Mentor Naik Kelas",
-            reviewsCount: 128,
-            soldCount: 45,
-            rating: 4.9
             talentName: c.talent_profile?.display_name || c.talentName || mockMatch?.talentName || (c.talent_profile_id ? `Mentor ${c.talent_profile_id.substring(0, 5)}` : "Dr. Amanda Wijaya, M.Sc."),
             talentAvatar: c.talent_profile?.avatar_url || c.talentAvatar || mockMatch?.talentAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400",
             talentTitle: c.talent_profile?.expertise || c.talentTitle || mockMatch?.talentTitle || "Alumni Oxford University",
@@ -92,7 +84,6 @@ export default function CatalogDetailPage({ params }: Props) {
         if (isMounted) {
           setLoading(false);
         }
-        console.warn("Using fallback mock catalog for id:", resolvedParams.id, error);
       }
 
       // Check fallback mock
@@ -198,9 +189,6 @@ export default function CatalogDetailPage({ params }: Props) {
                   <span className="text-on-surface-variant font-normal">({catalog.reviewsCount} Ulasan)</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-outline-variant" />
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-xs">
-                    {catalog.talentName[0]}
                 <Link
                   href={`/profile/${catalog.talent_profile_id || catalog.id}`}
                   className="inline-flex items-center gap-2.5 p-1 -m-1 rounded-xl hover:bg-surface-variant/40 transition-all group"
@@ -217,8 +205,6 @@ export default function CatalogDetailPage({ params }: Props) {
                       catalog.talentName?.[0] || "M"
                     )}
                   </div>
-                  <span className="font-semibold text-on-surface">{catalog.talentName}</span>
-                </div>
                   <div className="text-left">
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">
@@ -328,12 +314,8 @@ export default function CatalogDetailPage({ params }: Props) {
 
                 {activeTab === "mentor" && (
                   <div className="space-y-6">
-                    <h3 className="text-xl font-bold text-on-surface">Profil Mentor</h3>
-                    <div className="flex flex-col sm:flex-row gap-6 items-start">
-                      <div className="w-20 h-20 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-2xl shrink-0">
-                        {catalog.talentName?.[0] || "M"}
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold text-on-surface">Profil & Informasi Mentor</h3>
+                      <h3 className="text-xl font-bold text-on-surface">Profil &amp; Informasi Mentor</h3>
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
                         <VerifiedIcon sx={{ fontSize: 16 }} />
                         <span>Terverifikasi Resmi</span>
@@ -373,10 +355,6 @@ export default function CatalogDetailPage({ params }: Props) {
                           )}
                         </div>
                       </div>
-                      <div className="space-y-3 flex-1">
-                        <div>
-                          <h4 className="text-xl font-bold text-on-surface">{catalog.talentName}</h4>
-                          <p className="text-xs text-primary font-semibold mt-0.5">Mentor Terverifikasi Naik Kelas</p>
 
                       {/* Mentor Quick Stats Grid */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
@@ -409,7 +387,6 @@ export default function CatalogDetailPage({ params }: Props) {
                       <div className="space-y-2">
                         <h5 className="font-bold text-sm text-on-surface">Tentang Mentor:</h5>
                         <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                          Memiliki dedikasi tinggi dalam membimbing siswa meraih prestasi akademik tertinggi dengan pengalaman kurikulum teruji.
                           {catalog.talentBio ||
                             "Berpengalaman mendampingi puluhan siswa meraih beasiswa prestisius dan kelulusan tes target dengan kurikulum terstruktur serta bimbingan 1-on-1 yang intensif dan suportif."}
                         </p>

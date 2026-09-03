@@ -114,8 +114,6 @@ export function CatalogCard({ catalog }: Readonly<{ catalog: CatalogCardModel }>
             {catalog.title}
           </Typography>
 
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Avatar sx={{ width: 28, height: 28, bgcolor: "primary.light", color: "primary.contrastText", fontSize: "0.75rem", fontWeight: 700 }}>
           {/* Talent / Mentor Info Block */}
           <Box
             component={Link}
@@ -154,7 +152,6 @@ export function CatalogCard({ catalog }: Readonly<{ catalog: CatalogCardModel }>
             >
               {catalog.talentName?.[0] || "M"}
             </Avatar>
-          </Stack>
             <Box sx={{ minWidth: 0, flex: 1 }}>
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <Typography

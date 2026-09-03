@@ -1,5 +1,3 @@
-import PersonIcon from "@mui/icons-material/Person";
-import { Box, Container, Paper, Stack, Typography } from "@mui/material";
 "use client";
 
 import React, { use } from "react";
@@ -8,8 +6,6 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { CatalogCard } from "@/components/marketplace/CatalogCard";
 import { mockFeaturedCatalogs } from "@/lib/mock/data";
-
-import { use } from "react";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import StarIcon from "@mui/icons-material/Star";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
@@ -62,19 +58,6 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
 
   return (
     <AppShell>
-      <Box sx={{ py: 4 }}>
-        <Container maxWidth="md">
-          <Paper variant="outlined" sx={{ p: 3 }}>
-            <Stack spacing={2} alignItems="flex-start">
-              <PersonIcon color="primary" />
-              <Typography component="h1" variant="h2">
-                Public Profile — {id}
-              </Typography>
-              <Typography color="text.secondary">Profile details and verification status (mock).</Typography>
-            </Stack>
-          </Paper>
-        </Container>
-      </Box>
       <div className="bg-background min-h-screen pb-20">
         {/* Navigation Breadcrumb */}
         <div className="border-b border-outline-variant/30 bg-surface">

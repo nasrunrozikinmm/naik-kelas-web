@@ -30,8 +30,6 @@ export const mockFeaturedCatalogs: CatalogCardModel[] = [
   },
   {
     id: "catalog-live-english",
-    title: "Private English Speaking untuk Interview",
-    talentName: "Nadia Prameswari",
     title: "Private English Speaking & Interview Preparation",
     talentName: "Nadia Prameswari, S.Hum.",
     talentAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400",
@@ -48,23 +46,16 @@ export const mockFeaturedCatalogs: CatalogCardModel[] = [
     talent_profile_id: "mentor-nadia-prameswari",
     type: "live_session",
     price: 175000,
-    rating: 4.8,
-    category: "English",
-    image:
-      "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=abcd",
     rating: 4.88,
     category: "Bahasa",
     image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=1200&auto=format&fit=crop",
     reviewsCount: 128,
     soldCount: 420,
-    excerpt: "Latihan percakapan intensif untuk persiapan interview kerja atau beasiswa.",
     excerpt: "Latihan percakapan intensif untuk persiapan interview kerja atau beasiswa dunia.",
     badge: { label: "Live Session", variant: "live" }
   },
   {
     id: "catalog-recorded-go",
-    title: "Dasar Backend Golang untuk Pemula",
-    talentName: "Alya Santoso",
     title: "Masterclass Backend Golang & Clean Architecture",
     talentName: "Alya Santoso, S.Kom.",
     talentAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400",
@@ -81,16 +72,11 @@ export const mockFeaturedCatalogs: CatalogCardModel[] = [
     talent_profile_id: "mentor-alya-santoso",
     type: "recorded_course",
     price: 199000,
-    rating: 4.7,
     rating: 4.85,
     category: "Programming",
-    image:
-      "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=efgh",
     image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=1200&auto=format&fit=crop",
     reviewsCount: 85,
     soldCount: 1500,
-    excerpt: "Kursus pengantar backend menggunakan Go, fokus pada praktik dan pola umum.",
-    badge: { label: "Recorded", variant: "secondary" }
     excerpt: "Kursus komprehensif backend Golang dari nol hingga produksi dengan clean architecture.",
     badge: { label: "Video Course", variant: "secondary" }
   },
