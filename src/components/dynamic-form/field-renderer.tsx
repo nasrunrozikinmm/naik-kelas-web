@@ -32,6 +32,48 @@ interface FieldRendererProps {
   formState: UseFormStateReturn<Record<string, unknown>>;
 }
 
+/**
+ * Shared styling for form inputs to give a modern, subtle tinted background
+ * that transitions cleanly on hover, focus, and disabled states.
+ */
+const getOutlinedInputSx = (minRows?: number) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    backgroundColor: 'var(--color-surface-container-low, #f0f3ff)',
+    transition: 'all 0.2s ease-in-out',
+    boxSizing: 'border-box',
+    ...(minRows
+      ? { minHeight: Math.max(minRows * 24 + 32, 96) }
+      : { height: 56, minHeight: 56 }),
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'var(--color-outline-variant, #c3c5d7)',
+      borderWidth: '1px',
+      transition: 'border-color 0.2s, border-width 0.2s',
+    },
+    '&:hover': {
+      backgroundColor: 'var(--color-surface-container-lowest, #ffffff)',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'var(--color-primary, #003fb1)',
+      },
+    },
+    '&.Mui-focused': {
+      backgroundColor: 'var(--color-surface-container-lowest, #ffffff)',
+      boxShadow: '0 0 0 3px rgba(0, 63, 177, 0.12)',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'var(--color-primary, #003fb1)',
+        borderWidth: '1.5px',
+      },
+    },
+    '&.Mui-disabled': {
+      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+      opacity: 0.85,
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'rgba(195, 197, 215, 0.6)',
+      },
+    },
+  },
+});
+
 export default function FieldRenderer({ config, field, fieldState, formState }: FieldRendererProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -103,34 +145,53 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
       const handleMultiChange = (val: string | number, checked: boolean) => {
         const current = safeArrayValue;
         if (isDisabled) return;
-        const next = checked ? [...current, val] : current.filter(v => v !== val);
+        const next = checked ? [...current, val] : current.filter((v) => v !== val);
         field.onChange(next);
       };
 
       return (
         <FormControl error={isError} component="fieldset" fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <FormLabel component="legend" required={isRequired}>{config.label}</FormLabel>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 1 }}>
             {config.options?.map((opt) => (
-              <FormControlLabel 
-                key={opt.value} 
-                control={
-                  config.type === 'multi-switch' ? (
-                    <Switch 
-                      disabled={isDisabled}
-                      checked={safeArrayValue.includes(opt.value)}
-                      onChange={(e) => handleMultiChange(opt.value, e.target.checked)} 
-                    />
-                  ) : (
-                    <Checkbox 
-                      disabled={isDisabled}
-                      checked={safeArrayValue.includes(opt.value)}
-                      onChange={(e) => handleMultiChange(opt.value, e.target.checked)} 
-                    />
-                  )
-                } 
-                label={opt.label} 
-              />
+              <Box
+                key={opt.value}
+                sx={{
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: '10px',
+                  backgroundColor: 'var(--color-surface-container-low, #f0f3ff)',
+                  border: '1px solid',
+                  borderColor: 'var(--color-outline-variant, #c3c5d7)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  transition: 'all 0.15s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: 'var(--color-surface-container-lowest, #ffffff)',
+                    borderColor: 'var(--color-primary, #003fb1)',
+                  },
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    config.type === 'multi-switch' ? (
+                      <Switch
+                        disabled={isDisabled}
+                        checked={safeArrayValue.includes(opt.value)}
+                        onChange={(e) => handleMultiChange(opt.value, e.target.checked)}
+                      />
+                    ) : (
+                      <Checkbox
+                        disabled={isDisabled}
+                        checked={safeArrayValue.includes(opt.value)}
+                        onChange={(e) => handleMultiChange(opt.value, e.target.checked)}
+                      />
+                    )
+                  }
+                  label={opt.label}
+                  sx={{ mr: 0 }}
+                />
+              </Box>
             ))}
           </Box>
           {isError && <FormHelperText>{helperText}</FormHelperText>}
@@ -164,10 +225,11 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
                 field.onChange(newValues.map((v) => (typeof v === 'string' ? v : v.value)));
               }}
               sx={{
+                ...getOutlinedInputSx(),
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: '10px',
+                  ...getOutlinedInputSx()['& .MuiOutlinedInput-root'],
+                  height: 'auto',
                   minHeight: 56,
-                  boxSizing: 'border-box',
                 },
               }}
               renderInput={(params) => (
@@ -199,13 +261,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
             onChange={(_, newValue) => {
               field.onChange(newValue ? (typeof newValue === 'string' ? newValue : newValue.value) : '');
             }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '10px',
-                height: 56,
-                boxSizing: 'border-box',
-              },
-            }}
+            sx={getOutlinedInputSx()}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -235,7 +291,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
           helperText={helperText}
           value={isMultiple ? safeArrayValue : (value || '')}
           SelectProps={{ multiple: isMultiple }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: 56 } }}
+          sx={getOutlinedInputSx()}
         >
           {config.options?.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
@@ -304,13 +360,33 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
       return (
         <FormControl fullWidth margin="none" error={isError} required={isRequired} disabled={isDisabled}>
           <FormLabel required={isRequired}>{config.label}</FormLabel>
-          <Box sx={{ mt: 1, p: 2, border: '1px dashed #ccc', borderRadius: '10px', textAlign: 'center' }}>
+          <Box
+            sx={{
+              mt: 1,
+              p: 3,
+              border: '1.5px dashed',
+              borderColor: isError ? 'var(--color-error, #ba1a1a)' : 'var(--color-outline-variant, #c3c5d7)',
+              borderRadius: '10px',
+              textAlign: 'center',
+              backgroundColor: 'var(--color-surface-container-low, #f0f3ff)',
+              transition: 'all 0.2s ease-in-out',
+              minHeight: 110,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '&:hover': {
+                backgroundColor: 'var(--color-surface-container-lowest, #ffffff)',
+                borderColor: 'var(--color-primary, #003fb1)',
+              },
+            }}
+          >
             <IconButton color="primary" component="label" disabled={isDisabled}>
               <input hidden type="file" multiple={config.type === 'images' || config.type === 'upload-box'} accept={config.accept} disabled={isDisabled} />
               {config.type === 'images' ? <ImageIcon fontSize="large" /> : <CloudUpload fontSize="large" />}
             </IconButton>
-            <Typography variant="body2" color="textSecondary">
-              {config.type === 'upload-box' ? 'Drag and drop files here' : 'Click to select file(s)'}
+            <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5, fontSize: '0.8125rem' }}>
+              {config.type === 'upload-box' ? 'Drag and drop files here or click to browse' : 'Click to select file(s)'}
             </Typography>
           </Box>
           {isError && <FormHelperText>{helperText}</FormHelperText>}
@@ -340,7 +416,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
               </InputAdornment>
             ),
           }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: 56 } }}
+          sx={getOutlinedInputSx()}
         />
       );
 
@@ -366,12 +442,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
           InputLabelProps={
             ['date', 'time', 'datetime', 'datetime-local'].includes(config.type) ? { shrink: true } : undefined
           }
-          sx={{ 
-            '& .MuiOutlinedInput-root': { 
-              borderRadius: '10px',
-              ...(config.minRows ? {} : { height: 56 }) 
-            } 
-          }}
+          sx={getOutlinedInputSx(config.minRows)}
         />
       );
     }
