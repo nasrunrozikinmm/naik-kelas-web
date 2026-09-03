@@ -244,7 +244,6 @@ export default function TalentCatalogsPage() {
         {/* Table Content */}
         {loading ? (
           <div className="p-6">
-            <TableSkeleton rows={5} cols={5} />
           </div>
         ) : filteredCatalogs.length === 0 ? (
           <div className="py-12">
@@ -262,20 +261,6 @@ export default function TalentCatalogsPage() {
                       setSearchQuery("");
                       setStatusFilter("all");
                       setTypeFilter("all");
-                    }}
-                    className="px-4 py-2 bg-surface-container rounded-xl text-xs font-bold text-on-surface hover:bg-surface-variant transition-colors"
-                  >
-                    Reset Filter
-                  </button>
-                ) : (
-                  <Link
-                    href="/talent/catalogs/new"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
-                  >
-                    <AddIcon sx={{ fontSize: 16 }} />
-                    <span>Buat Layanan Baru</span>
-                  </Link>
-                )
               }
             />
           </div>
