@@ -62,6 +62,30 @@ export default function DynamicForm({
       noValidate 
       sx={{ 
         width: '100%',
+        '& .MuiFormLabel-root': {
+          fontSize: '0.8125rem',
+          fontWeight: 600,
+          color: 'var(--color-on-surface, #151c27)',
+          mb: 0.5,
+        },
+        '& .MuiInputLabel-root': {
+          fontSize: '0.8125rem',
+          fontWeight: 500,
+          '&.MuiInputLabel-shrink': {
+            fontSize: '0.75rem',
+            fontWeight: 600,
+          },
+        },
+        '& .MuiOutlinedInput-input': {
+          fontSize: '0.8125rem',
+        },
+        '& .MuiFormControlLabel-label': {
+          fontSize: '0.8125rem',
+          fontWeight: 500,
+        },
+        '& .MuiFormHelperText-root': {
+          fontSize: '0.71875rem',
+        },
         '& .MuiFormLabel-asterisk': {
           color: '#ba1a1a',
           fontWeight: 700,
@@ -156,9 +180,11 @@ export default function DynamicForm({
           disabled={isLoading || disabled}
           sx={{
             py: 1.3,
+            py: 1.1,
             mt: extraActions ? 1 : 3,
             textTransform: 'none',
             fontSize: '1rem',
+            fontSize: '0.8125rem',
             fontWeight: 700,
             ...submitButtonSx
           }}
