@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { PageHeader } from "@/components/common/PageHeader";
-import { StatCard } from "@/components/common/StatCard";
-import { StatusBadge } from "@/components/common/StatusBadge";
-import { ConfirmDialog } from "@/components/common/ConfirmDialog";
-import { EmptyState } from "@/components/common/EmptyState";
-import { TableSkeleton } from "@/components/common/SkeletonLoader";
+import { PageHeader, StatCard, StatusBadge, EmptyState, TableSkeleton } from "@/components/common";
+import { useConfirm } from "@/hooks/useConfirm";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { getMyCatalogs, deleteCatalog } from "@/lib/api/catalog";
+import {
+  CATALOG_STATUS_TABS,
+  getCatalogTypeLabel,
+  getCatalogTypeIcon,
+  getCatalogStatusLabel,
+} from "@/lib/utils/catalog";
 import type { Catalog } from "@/types/domain";
 
 // MUI Icons
@@ -23,21 +25,14 @@ import EditNoteOutlinedIcon from "@mui/icons-material/EditNoteOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import VideoCameraFrontOutlinedIcon from "@mui/icons-material/VideoCameraFrontOutlined";
-import PlayCircleOutlineOutlinedIcon from "@mui/icons-material/PlayCircleOutlineOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import ChatOutlinedIcon from "@mui/icons-material/ChatOutlined";
 
 export default function TalentCatalogsPage() {
+  const { confirm } = useConfirm();
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-
-  // Delete dialog state
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const fetchCatalogs = useCallback(async () => {
     try {
@@ -55,17 +50,25 @@ export default function TalentCatalogsPage() {
     fetchCatalogs();
   }, [fetchCatalogs]);
 
-  const handleDelete = async () => {
-    if (!deleteId) return;
+  const handleDelete = async (catalog: Catalog) => {
+    const isConfirmed = await confirm({
+      title: "Hapus Layanan?",
+      message: (
+        <span>
+          Apakah Anda yakin ingin menghapus layanan <strong>&quot;{catalog.title}&quot;</strong>? Layanan yang dihapus tidak akan dapat diakses lagi oleh siswa di katalog marketplace.
+        </span>
+      ),
+      confirmLabel: "Hapus Layanan",
+      confirmColor: "error",
+    });
+
+    if (!isConfirmed) return;
+
     try {
-      setDeleteLoading(true);
-      await deleteCatalog(deleteId);
-      setCatalogs((prev) => prev.filter((c) => c.id !== deleteId));
-      setDeleteId(null);
+      await deleteCatalog(catalog.id);
+      setCatalogs((prev) => prev.filter((c) => c.id !== catalog.id));
     } catch (error) {
       console.error("Failed to delete catalog", error);
-    } finally {
-      setDeleteLoading(false);
     }
   };
 
@@ -98,36 +101,6 @@ export default function TalentCatalogsPage() {
   const activeCount = catalogs.filter((c) => c.status === "published" || c.status === "active").length;
   const pendingCount = catalogs.filter((c) => c.status === "pending_review").length;
   const draftCount = catalogs.filter((c) => c.status === "draft" || c.status === "rejected").length;
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "live_session":
-        return <VideoCameraFrontOutlinedIcon sx={{ fontSize: 16 }} className="text-primary" />;
-      case "recorded_course":
-        return <PlayCircleOutlineOutlinedIcon sx={{ fontSize: 16 }} className="text-secondary" />;
-      case "document_material":
-        return <DescriptionOutlinedIcon sx={{ fontSize: 16 }} className="text-warning" />;
-      case "chat_consultation":
-        return <ChatOutlinedIcon sx={{ fontSize: 16 }} className="text-success" />;
-      default:
-        return <LayersOutlinedIcon sx={{ fontSize: 16 }} />;
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case "live_session":
-        return "Live Session";
-      case "recorded_course":
-        return "Video Belajar";
-      case "document_material":
-        return "Materi Dokumen";
-      case "chat_consultation":
-        return "Konsultasi Chat";
-      default:
-        return type;
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -193,13 +166,7 @@ export default function TalentCatalogsPage() {
         <div className="p-4 border-b border-outline-variant/30 flex flex-col md:flex-row items-center justify-between gap-3 bg-surface-container-low/30">
           {/* Status Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-            {[
-              { id: "all", label: "Semua" },
-              { id: "published", label: "Aktif" },
-              { id: "pending_review", label: "Menunggu Review" },
-              { id: "draft", label: "Draft" },
-              { id: "rejected", label: "Ditolak" },
-            ].map((tab) => (
+            {CATALOG_STATUS_TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
@@ -244,6 +211,7 @@ export default function TalentCatalogsPage() {
         {/* Table Content */}
         {loading ? (
           <div className="p-6">
+            <TableSkeleton rows={5} cols={5} />
           </div>
         ) : filteredCatalogs.length === 0 ? (
           <div className="py-12">
@@ -261,6 +229,20 @@ export default function TalentCatalogsPage() {
                       setSearchQuery("");
                       setStatusFilter("all");
                       setTypeFilter("all");
+                    }}
+                    className="px-4 py-2 bg-surface-container rounded-xl text-xs font-bold text-on-surface hover:bg-surface-variant transition-colors"
+                  >
+                    Reset Filter
+                  </button>
+                ) : (
+                  <Link
+                    href="/talent/catalogs/new"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
+                  >
+                    <AddIcon sx={{ fontSize: 16 }} />
+                    <span>Buat Layanan Baru</span>
+                  </Link>
+                )
               }
             />
           </div>
@@ -279,10 +261,10 @@ export default function TalentCatalogsPage() {
                     Harga
                   </th>
                   <th className="px-6 py-3.5 font-bold text-on-surface-variant uppercase tracking-wider">
-                    Durasi / Kuota
+                    Status
                   </th>
                   <th className="px-6 py-3.5 font-bold text-on-surface-variant uppercase tracking-wider">
-                    Status
+                    Dibuat Pada
                   </th>
                   <th className="px-6 py-3.5 font-bold text-on-surface-variant uppercase tracking-wider text-right">
                     Aksi
@@ -290,67 +272,63 @@ export default function TalentCatalogsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
-                {filteredCatalogs.map((catalog) => (
-                  <tr key={catalog.id} className="hover:bg-surface-container-low/40 transition-colors">
+                {filteredCatalogs.map((item) => (
+                  <tr key={item.id} className="hover:bg-surface-container-low/40 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-on-surface line-clamp-1 max-w-sm">
-                        {catalog.title}
-                      </div>
-                      <div className="text-[11px] text-on-surface-variant mt-0.5">
-                        Dibuat: {formatDate(catalog.created_at)}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 font-semibold text-on-surface">
-                        {getTypeIcon(catalog.type)}
-                        <span>{getTypeLabel(catalog.type)}</span>
-                      </div>
-                      {catalog.category?.name && (
-                        <div className="text-[11px] text-on-surface-variant mt-0.5">
-                          {catalog.category.name}
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-surface-container text-on-surface flex items-center justify-center shrink-0">
+                          {getCatalogTypeIcon(item.type)}
                         </div>
-                      )}
-                    </td>
-
-                    <td className="px-6 py-4 font-bold text-on-surface">
-                      {formatCurrency(catalog.price)}
-                    </td>
-
-                    <td className="px-6 py-4 text-on-surface-variant">
-                      <div>{catalog.duration ? `${catalog.duration} Menit` : "-"}</div>
-                      <div className="text-[11px]">
-                        {catalog.quota ? `Maks. ${catalog.quota} siswa` : "Tanpa kuota"}
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors line-clamp-1">
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] text-on-surface-variant line-clamp-1 mt-0.5">
+                            {item.description || "Tidak ada deskripsi"}
+                          </p>
+                        </div>
                       </div>
                     </td>
-
                     <td className="px-6 py-4">
-                      <StatusBadge status={catalog.status} />
+                      <div className="space-y-0.5">
+                        <p className="font-medium text-on-surface">
+                          {getCatalogTypeLabel(item.type)}
+                        </p>
+                        <p className="text-[11px] text-on-surface-variant">
+                          {item.category?.name || "Kategori Umum"}
+                        </p>
+                      </div>
                     </td>
-
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-6 py-4 font-bold text-on-surface">
+                      {formatCurrency(item.price)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={item.status} label={getCatalogStatusLabel(item.status)} />
+                    </td>
+                    <td className="px-6 py-4 text-on-surface-variant whitespace-nowrap">
+                      {formatDate(item.created_at)}
+                    </td>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Link
-                          href={`/catalog/${catalog.id}`}
+                          href={`/catalog/${item.id}`}
                           target="_blank"
-                          className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors"
-                          title="Lihat Halaman Publik"
+                          title="Lihat Pratinjau Publik"
+                          className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors"
                         >
                           <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
                         </Link>
-
                         <Link
-                          href={`/talent/catalogs/${catalog.id}/edit`}
-                          className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors"
+                          href={`/talent/catalogs/${item.id}/edit`}
                           title="Edit Layanan"
+                          className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-secondary transition-colors"
                         >
                           <EditOutlinedIcon sx={{ fontSize: 18 }} />
                         </Link>
-
                         <button
-                          onClick={() => setDeleteId(catalog.id)}
-                          className="p-1.5 text-on-surface-variant hover:text-error hover:bg-surface-variant rounded-lg transition-colors"
+                          onClick={() => handleDelete(item)}
                           title="Hapus Layanan"
+                          className="p-1.5 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error transition-colors"
                         >
                           <DeleteOutlineOutlinedIcon sx={{ fontSize: 18 }} />
                         </button>
@@ -363,18 +341,6 @@ export default function TalentCatalogsPage() {
           </div>
         )}
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={Boolean(deleteId)}
-        title="Hapus Layanan?"
-        message="Layanan yang dihapus tidak akan dapat diakses lagi oleh siswa di katalog marketplace. Lanjutkan?"
-        confirmLabel="Hapus Layanan"
-        confirmColor="error"
-        isLoading={deleteLoading}
-        onConfirm={handleDelete}
-        onClose={() => setDeleteId(null)}
-      />
     </div>
   );
 }

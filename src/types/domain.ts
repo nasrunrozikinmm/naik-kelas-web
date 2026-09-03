@@ -120,7 +120,6 @@ export interface UserListItem {
   name: string;
   email: string;
   role: UserRole | string;
-  status: UserStatus;
   joinDate?: string;
   created_at?: string;
   avatar_url?: string;

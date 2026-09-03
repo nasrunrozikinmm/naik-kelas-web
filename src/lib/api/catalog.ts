@@ -63,3 +63,24 @@ export async function addScheduleSlot(catalogId: string, slot: ScheduleSlotInput
   const res = await apiClient.post(`/catalogs/${catalogId}/schedule-slots`, slot);
   return res.data?.data;
 }
+
+export async function getAdminCatalogs(params?: {
+  status?: string;
+  category_id?: string;
+  talent_profile_id?: string;
+  page?: number;
+  per_page?: number;
+  sort?: string;
+}): Promise<Catalog[]> {
+  const res = await apiClient.get('/catalogs', { params });
+  return res.data?.data || [];
+}
+
+export async function moderateCatalogStatus(
+  id: string,
+  status: 'published' | 'active' | 'rejected' | 'archived' | 'draft'
+): Promise<Catalog> {
+  const normalizedStatus = status === 'active' ? 'published' : status;
+  const res = await apiClient.put(`/catalogs/${id}`, { status: normalizedStatus });
+  return res.data?.data;
+}

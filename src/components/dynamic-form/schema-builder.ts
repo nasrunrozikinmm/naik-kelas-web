@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { FormConfig, FieldConfig } from './types';
+import { FormConfig, FieldConfig, getAllFormFields } from './types';
 
 export function buildZodSchema(config: FormConfig) {
   if (config.customSchema) {
@@ -7,8 +7,9 @@ export function buildZodSchema(config: FormConfig) {
   }
 
   const schemaShape: Record<string, z.ZodTypeAny> = {};
+  const fields = getAllFormFields(config);
 
-  config.fields.forEach((field: FieldConfig) => {
+  fields.forEach((field: FieldConfig) => {
     let fieldSchema: z.ZodTypeAny;
 
     const isNumberType = ['number', 'slider', 'rating'].includes(field.type);
@@ -20,10 +21,39 @@ export function buildZodSchema(config: FormConfig) {
     if (isCustomType) {
       fieldSchema = z.any();
     } else if (isNumberType) {
-      fieldSchema = z.number({
+      let numSchema = z.number({
         required_error: field.validation?.requiredMessage || `${field.label} is required`,
         invalid_type_error: `${field.label} must be a number`,
       });
+
+      if (field.validation?.min !== undefined) {
+        numSchema = numSchema.min(field.validation.min, {
+          message: field.validation.minMessage || `Minimum value is ${field.validation.min}`,
+        });
+      }
+
+      if (field.validation?.max !== undefined) {
+        numSchema = numSchema.max(field.validation.max, {
+          message: field.validation.maxMessage || `Maximum value is ${field.validation.max}`,
+        });
+      }
+
+      if (field.validation?.custom) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        numSchema = (numSchema as any).refine(field.validation.custom, {
+          message: field.validation.customMessage || 'Invalid value',
+        });
+      }
+
+      const isRequired = !!field.validation?.required;
+      const targetSchema = isRequired ? numSchema : numSchema.optional();
+
+      // Preprocess values to coerce strings from HTML <input type="number"> into actual numbers
+      fieldSchema = z.preprocess((val) => {
+        if (val === '' || val === null || val === undefined) return undefined;
+        const num = Number(val);
+        return isNaN(num) ? val : num;
+      }, targetSchema);
     } else if (isBooleanType) {
       fieldSchema = z.boolean({
         required_error: field.validation?.requiredMessage || `${field.label} is required`,
@@ -54,24 +84,22 @@ export function buildZodSchema(config: FormConfig) {
       }
     }
 
-    // Apply validations while schema is still the concrete Zod type (BEFORE calling .optional())
-    if (field.validation) {
+    // Apply validations while schema is still the concrete Zod type (for non-number fields)
+    if (field.validation && !isNumberType) {
       const v = field.validation;
 
       // Required minimum length for strings and arrays
       if (v.required) {
-        if (!isNumberType && !isBooleanType && !isArrayType && !isCustomType && field.type !== 'url') {
+        if (!isBooleanType && !isArrayType && !isCustomType && field.type !== 'url') {
           fieldSchema = (fieldSchema as z.ZodString).min(1, { message: v.requiredMessage || `${field.label} is required` });
         } else if (isArrayType) {
           fieldSchema = (fieldSchema as z.ZodArray<z.ZodTypeAny>).min(1, { message: v.requiredMessage || `At least one ${field.label} is required` });
         }
       }
 
-      // Min/Max for strings, arrays, and numbers
+      // Min/Max for strings and arrays
       if (v.min !== undefined) {
-        if (isNumberType) {
-          fieldSchema = (fieldSchema as z.ZodNumber).min(v.min, { message: v.minMessage || `Minimum value is ${v.min}` });
-        } else if (isArrayType) {
+        if (isArrayType) {
           fieldSchema = (fieldSchema as z.ZodArray<z.ZodTypeAny>).min(v.min, { message: v.minMessage || `Minimum items is ${v.min}` });
         } else if (!isBooleanType && !isCustomType) {
           fieldSchema = (fieldSchema as z.ZodString).min(v.min, { message: v.minMessage || `Minimum length is ${v.min}` });
@@ -79,9 +107,7 @@ export function buildZodSchema(config: FormConfig) {
       }
 
       if (v.max !== undefined) {
-        if (isNumberType) {
-          fieldSchema = (fieldSchema as z.ZodNumber).max(v.max, { message: v.maxMessage || `Maximum value is ${v.max}` });
-        } else if (isArrayType) {
+        if (isArrayType) {
           fieldSchema = (fieldSchema as z.ZodArray<z.ZodTypeAny>).max(v.max, { message: v.maxMessage || `Maximum items is ${v.max}` });
         } else if (!isBooleanType && !isCustomType) {
           fieldSchema = (fieldSchema as z.ZodString).max(v.max, { message: v.maxMessage || `Maximum length is ${v.max}` });
@@ -89,7 +115,7 @@ export function buildZodSchema(config: FormConfig) {
       }
 
       // Pattern (regex)
-      if (v.pattern && !isNumberType && !isBooleanType && !isArrayType && !isCustomType) {
+      if (v.pattern && !isBooleanType && !isArrayType && !isCustomType) {
         fieldSchema = (fieldSchema as z.ZodString).regex(v.pattern, { message: v.patternMessage || 'Invalid format' });
       }
 
@@ -105,7 +131,7 @@ export function buildZodSchema(config: FormConfig) {
       if (!v.required && !isBooleanType && field.type !== 'url') {
         fieldSchema = fieldSchema.optional();
       }
-    } else {
+    } else if (!isNumberType) {
       // If no validation provided, make it optional by default (except boolean)
       if (!isBooleanType && field.type !== 'url') {
         fieldSchema = fieldSchema.optional();

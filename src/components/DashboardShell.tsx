@@ -64,6 +64,7 @@ const TALENT_NAV: NavItem[] = [
 
 const ADMIN_NAV: NavItem[] = [
   { label: "Dashboard", icon: <DashboardOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/dashboard" },
+  { label: "Moderasi Layanan", icon: <LayersOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/catalogs" },
   { label: "Persetujuan Talent", icon: <VerifiedUserOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/talent-approval" },
   { label: "Manajemen User", icon: <GroupOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/users" },
   { label: "Transaksi", icon: <AccountBalanceOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/transactions" },

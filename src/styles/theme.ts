@@ -25,7 +25,7 @@ export const getTheme = (mode: 'light' | 'dark') => {
       divider: mode === 'dark' ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.12)"
     },
     shape: {
-      borderRadius: 12
+      borderRadius: 10
     },
     typography: {
       fontFamily: [
@@ -45,7 +45,41 @@ export const getTheme = (mode: 'light' | 'dark') => {
     components: {
       MuiButton: {
         defaultProps: { disableElevation: true },
-        styleOverrides: { root: { borderRadius: 12, padding: "10px 14px" } }
+        styleOverrides: {
+          root: {
+            borderRadius: 10,
+            padding: "10px 14px",
+            textTransform: "none",
+            fontWeight: 700,
+          },
+          contained: {
+            color: "#ffffff !important",
+            "&:hover": {
+              color: "#ffffff !important",
+            },
+          },
+          containedPrimary: {
+            color: "#ffffff !important",
+            backgroundColor: mode === "dark" ? "#2563eb" : "#003fb1",
+            "&:hover": {
+              backgroundColor: mode === "dark" ? "#1d4ed8" : "#002b80",
+              color: "#ffffff !important",
+            },
+          },
+          containedSecondary: {
+            color: "#ffffff !important",
+            "&:hover": {
+              color: "#ffffff !important",
+            },
+          },
+          outlined: {
+            color: mode === "dark" ? "#60a5fa" : "#003fb1",
+            borderColor: mode === "dark" ? "#3b82f6" : "#003fb1",
+          },
+          text: {
+            color: mode === "dark" ? "#60a5fa" : "#003fb1",
+          },
+        },
       },
       MuiCard: {
         styleOverrides: {

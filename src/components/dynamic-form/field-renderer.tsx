@@ -9,16 +9,17 @@ import {
   FormLabel, 
   RadioGroup, 
   FormControlLabel, 
-  Radio,
-  FormHelperText,
-  Checkbox,
-  Switch,
-  Slider,
-  Rating,
-  MenuItem,
-  Alert,
-  Typography,
-  Box
+  Radio, 
+  FormHelperText, 
+  Checkbox, 
+  Switch, 
+  Slider, 
+  Rating, 
+  MenuItem, 
+  Alert, 
+  Typography, 
+  Box,
+  Autocomplete
 } from '@mui/material';
 import { Visibility, VisibilityOff, CloudUpload, Image as ImageIcon, Create } from '@mui/icons-material';
 import { FieldConfig } from './types';
@@ -133,10 +134,86 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
       );
     }
 
+    case 'autocomplete':
     case 'select':
     case 'multi-select':
     case 'country-select': {
       const isMultiple = config.type === 'multi-select' || config.multiple;
+      const isSearchable = config.type === 'autocomplete' || config.searchable;
+      const options = config.options || [];
+
+      if (isSearchable) {
+        if (isMultiple) {
+          const selectedOptions = options.filter((opt) =>
+            safeArrayValue.map(String).includes(String(opt.value))
+          );
+
+          return (
+            <Autocomplete
+              multiple
+              options={options}
+              getOptionLabel={(option) => (typeof option === 'string' ? option : option.label)}
+              isOptionEqualToValue={(option, val) => String(option.value) === String(val.value)}
+              value={selectedOptions}
+              onChange={(_, newValues) => {
+                field.onChange(newValues.map((v) => (typeof v === 'string' ? v : v.value)));
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '10px',
+                  minHeight: 56,
+                  boxSizing: 'border-box',
+                },
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={config.label}
+                  placeholder={config.placeholder}
+                  required={isRequired}
+                  error={isError}
+                  helperText={helperText}
+                  margin="none"
+                />
+              )}
+            />
+          );
+        }
+
+        const selectedOption =
+          options.find((opt) => String(opt.value) === String(field.value)) || null;
+
+        return (
+          <Autocomplete
+            options={options}
+            getOptionLabel={(option) => (typeof option === 'string' ? option : option.label)}
+            isOptionEqualToValue={(option, val) => String(option.value) === String(val.value)}
+            value={selectedOption}
+            onChange={(_, newValue) => {
+              field.onChange(newValue ? (typeof newValue === 'string' ? newValue : newValue.value) : '');
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '10px',
+                height: 56,
+                boxSizing: 'border-box',
+              },
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={config.label}
+                placeholder={config.placeholder}
+                required={isRequired}
+                error={isError}
+                helperText={helperText}
+                margin="none"
+              />
+            )}
+          />
+        );
+      }
+
       const { value, ...restField } = field;
       return (
         <TextField
@@ -150,7 +227,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
           helperText={helperText}
           value={isMultiple ? safeArrayValue : (value || '')}
           SelectProps={{ multiple: isMultiple }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, height: 56 } }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: 56 } }}
         >
           {config.options?.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
@@ -198,13 +275,12 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
     case 'editor':
     case 'code':
     case 'signature':
-    case 'autocomplete':
     case 'field-array':
     case 'string-list':
       return (
         <FormControl fullWidth margin="none" required={isRequired}>
           <FormLabel required={isRequired}>{config.label}</FormLabel>
-          <Alert severity="info" icon={<Create />} sx={{ mt: 1, borderRadius: 2 }}>
+          <Alert severity="info" icon={<Create />} sx={{ mt: 1, borderRadius: '10px' }}>
             <strong>{config.type}</strong> field: This advanced component requires a 3rd party library installation (e.g. Rich Text, CodeMirror). 
             Currently rendering as a placeholder.
           </Alert>
@@ -218,7 +294,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
       return (
         <FormControl fullWidth margin="none" error={isError} required={isRequired}>
           <FormLabel required={isRequired}>{config.label}</FormLabel>
-          <Box sx={{ mt: 1, p: 2, border: '1px dashed #ccc', borderRadius: 2, textAlign: 'center' }}>
+          <Box sx={{ mt: 1, p: 2, border: '1px dashed #ccc', borderRadius: '10px', textAlign: 'center' }}>
             <IconButton color="primary" component="label">
               <input hidden type="file" multiple={config.type === 'images' || config.type === 'upload-box'} accept={config.accept} />
               {config.type === 'images' ? <ImageIcon fontSize="large" /> : <CloudUpload fontSize="large" />}
@@ -253,7 +329,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
               </InputAdornment>
             ),
           }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, height: 56 } }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: 56 } }}
         />
       );
 
@@ -280,7 +356,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
           }
           sx={{ 
             '& .MuiOutlinedInput-root': { 
-              borderRadius: 2, 
+              borderRadius: '10px',
               ...(config.minRows ? {} : { height: 56 }) 
             } 
           }}

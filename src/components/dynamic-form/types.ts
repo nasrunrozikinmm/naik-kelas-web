@@ -48,6 +48,7 @@ export interface FieldConfig {
   
   // Specific properties for advanced types
   multiple?: boolean;
+  searchable?: boolean;
   accept?: string; // for file uploads
   minRows?: number; // for multiline text
   
@@ -59,9 +60,29 @@ export interface FieldConfig {
   }) => ReactNode;
 }
 
-export interface FormConfig {
+export interface FormSection {
+  id?: string;
+  title?: string;
+  description?: string;
+  icon?: ReactNode;
   fields: FieldConfig[];
+  className?: string;
+}
+
+export interface FormConfig {
+  fields?: FieldConfig[];
+  sections?: FormSection[];
   submitLabel?: string;
   // If provided, generates a custom schema based on Zod object
   customSchema?: z.ZodTypeAny; 
+}
+
+export function getAllFormFields(config: FormConfig): FieldConfig[] {
+  if (config.fields && config.fields.length > 0) {
+    return config.fields;
+  }
+  if (config.sections && config.sections.length > 0) {
+    return config.sections.flatMap((section) => section.fields);
+  }
+  return [];
 }
