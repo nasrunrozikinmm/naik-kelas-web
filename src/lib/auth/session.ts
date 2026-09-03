@@ -21,7 +21,7 @@ export function deleteCookie(name: string) {
 
 export function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
@@ -73,7 +73,7 @@ export function getStoredSession(): SessionData | null {
   if (typeof window === "undefined") return null;
 
   try {
-    const raw = localStorage.getItem("nk_auth_session");
+    const raw = localStorage.getItem("nk_auth_session") || localStorage.getItem("vision_auth_session");
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed?.userId && parsed?.accessToken) {
@@ -84,23 +84,32 @@ export function getStoredSession(): SessionData | null {
     // Fall back to cookies
   }
 
-  const token = getCookie(AUTH_COOKIES.TOKEN);
-  const role = (getCookie(AUTH_COOKIES.ROLE) as UserRole) || "student";
-  const rawUser = getCookie(AUTH_COOKIES.USER);
+  const token = getCookie(AUTH_COOKIES.TOKEN) || getCookie("vision_token");
+  const role = (getCookie(AUTH_COOKIES.ROLE) || getCookie("vision_role") || "student") as UserRole;
+  const rawUser = getCookie(AUTH_COOKIES.USER) || getCookie("vision_user");
 
-  if (token && rawUser) {
-    try {
-      const user = JSON.parse(rawUser);
-      return {
-        userId: user.id,
-        displayName: user.name,
-        roles: user.roles || [role],
-        activeRole: role,
-        accessToken: token
-      };
-    } catch {
-      return null;
+  if (token) {
+    if (rawUser) {
+      try {
+        const user = JSON.parse(rawUser);
+        return {
+          userId: user.id || "user",
+          displayName: user.name || "User",
+          roles: user.roles || [role],
+          activeRole: role,
+          accessToken: token
+        };
+      } catch {
+        // Continue to token-only fallback
+      }
     }
+    return {
+      userId: "user",
+      displayName: "User",
+      roles: [role],
+      activeRole: role,
+      accessToken: token
+    };
   }
 
   return null;

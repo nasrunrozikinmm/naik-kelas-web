@@ -2,9 +2,22 @@ import type { Metadata } from "next";
 import { Providers } from "@/providers";
 import "@/styles/globals.css";
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3030";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: "Naik Kelas",
-  description: "Marketplace kursus dan private online"
+  description: "Marketplace kursus dan private online",
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/brand/naik-kelas-mark.png", type: "image/png", sizes: "160x160" }],
+  },
+  openGraph: {
+    title: "Naik Kelas",
+    description: "Marketplace kursus dan private online",
+    images: [{ url: "/brand/naik-kelas-lockup-light.jpg", width: 1264, height: 843, alt: "Naik Kelas" }],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -19,4 +32,3 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
-

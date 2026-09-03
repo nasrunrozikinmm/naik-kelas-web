@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { store } from "@/store";
 import { clearSession } from "@/store/slices/authSlice";
+import { getCookie, AUTH_COOKIES, getStoredSession } from "@/lib/auth/session";
 import type { ApiResponse } from "@/types/domain";
 
 const baseURL =
@@ -23,15 +24,25 @@ apiClient.interceptors.request.use(
   (config) => {
     config.headers["X-Client"] = "naik-kelas-web";
 
-    // Read access token from Redux store
+    // Read access token from Redux store or cookies/storage fallback
+    let token: string | null = null;
     try {
       const state = store.getState();
-      const token = state.auth.accessToken;
-      if (token && !config.headers.Authorization) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+      token = state.auth.accessToken;
     } catch {
       // Store not initialized yet or running outside React/Redux context
+    }
+
+    if (!token) {
+      token =
+        getCookie(AUTH_COOKIES.TOKEN) ||
+        getCookie("vision_token") ||
+        getStoredSession()?.accessToken ||
+        null;
+    }
+
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
@@ -44,13 +55,16 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      store.dispatch(clearSession());
+      const requestUrl = error.config?.url || "";
+      if (!requestUrl.includes("/auth/login") && !requestUrl.includes("/auth/register")) {
+        store.dispatch(clearSession());
 
-      // Redirect to login if in browser and not already on auth page
-      if (typeof window !== "undefined") {
-        const currentPath = window.location.pathname;
-        if (!currentPath.startsWith("/auth/")) {
-          window.location.href = `/auth/login?redirect=${encodeURIComponent(currentPath)}`;
+        // Redirect to login if in browser and not already on auth page
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (!currentPath.startsWith("/auth/")) {
+            window.location.href = `/auth/login?redirect=${encodeURIComponent(currentPath)}`;
+          }
         }
       }
     }

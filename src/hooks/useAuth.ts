@@ -19,8 +19,10 @@ export function useAuth() {
 
   const logout = useCallback(() => {
     dispatch(clearSession());
-    router.push("/auth/login");
-  }, [dispatch, router]);
+    if (typeof window !== "undefined") {
+      window.location.href = "/auth/login";
+    }
+  }, [dispatch]);
 
   const changeRole = useCallback(
     (role: UserRole) => {

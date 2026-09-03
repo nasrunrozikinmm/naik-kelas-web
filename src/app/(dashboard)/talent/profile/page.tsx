@@ -123,17 +123,23 @@ export default function TalentProfilePage() {
             }
           }
         }
-      } catch {
-        // Fallback or network error
+      } catch (err) {
+        console.warn("Could not load existing profile, using default data", err);
       } finally {
         if (isMounted) setIsLoadingProfile(false);
       }
     };
 
+    // Failsafe timer to guarantee form loads even if network latency is high
+    const timeoutTimer = setTimeout(() => {
+      if (isMounted) setIsLoadingProfile(false);
+    }, 4000);
+
     fetchProfile();
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutTimer);
     };
   }, [authName]);
 

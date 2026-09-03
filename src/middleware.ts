@@ -13,10 +13,32 @@ const authPrefixes = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Retrieve token and role from cookies (nk_token set by frontend session)
-  const token = request.cookies.get(AUTH_COOKIES.TOKEN)?.value;
-  const role = request.cookies.get(AUTH_COOKIES.ROLE)?.value;
+  // Retrieve token and role from cookies (support both nk_* and legacy vision_*)
+  const token =
+    request.cookies.get(AUTH_COOKIES.TOKEN)?.value ||
+    request.cookies.get("vision_token")?.value;
+  const role =
+    request.cookies.get(AUTH_COOKIES.ROLE)?.value ||
+    request.cookies.get("vision_role")?.value;
   const hasToken = Boolean(token);
+
+  let userRoles: string[] = [];
+  const rawUser =
+    request.cookies.get(AUTH_COOKIES.USER)?.value ||
+    request.cookies.get("vision_user")?.value;
+  if (rawUser) {
+    try {
+      const parsed = JSON.parse(decodeURIComponent(rawUser));
+      if (Array.isArray(parsed.roles)) {
+        userRoles = parsed.roles;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  if (role && !userRoles.includes(role)) {
+    userRoles.push(role);
+  }
 
   const getDashboardUrl = (userRole?: string) => {
     switch (userRole) {
@@ -50,26 +72,32 @@ export function middleware(request: NextRequest) {
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
-    if (role !== "superadministrator") {
+    const isAdmin = userRoles.includes("superadministrator");
+    if (!isAdmin) {
       const targetDashboard = getDashboardUrl(role);
       return NextResponse.redirect(new URL(targetDashboard, request.url));
     }
   }
 
-  // Talent Routes: only talent or superadministrator
+  // Talent Routes:
   if (pathname.startsWith("/talent")) {
     if (!hasToken) {
       const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
-    if (role !== "talent" && role !== "superadministrator") {
-      const targetDashboard = getDashboardUrl(role);
-      return NextResponse.redirect(new URL(targetDashboard, request.url));
+    // Halaman /talent/profile diperbolehkan untuk SEMUA pengguna terautentikasi (termasuk calon talent)
+    if (!pathname.startsWith("/talent/profile")) {
+      const isTalentOrAdmin =
+        userRoles.includes("talent") || userRoles.includes("superadministrator");
+      if (!isTalentOrAdmin) {
+        // Jika belum memiliki profil/role talent, arahkan ke verifikasi profil talent
+        return NextResponse.redirect(new URL("/talent/profile", request.url));
+      }
     }
   }
 
-  // Student Routes: student or superadministrator
+  // Student & Checkout Routes: Semua pengguna terautentikasi
   if (pathname.startsWith("/student") || pathname.startsWith("/checkout")) {
     if (!hasToken) {
       const loginUrl = new URL("/auth/login", request.url);
@@ -78,7 +106,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Shared Authenticated Routes: /chat, /profile
+  // Shared Authenticated Routes: /chat
   if (pathname.startsWith("/chat")) {
     if (!hasToken) {
       const loginUrl = new URL("/auth/login", request.url);

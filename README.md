@@ -1,4 +1,4 @@
-# Vision Web
+# Naik Kelas Web
 
 Next.js frontend foundation for Naik Kelas.
 

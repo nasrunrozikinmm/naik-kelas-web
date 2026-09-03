@@ -5,11 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { BrandLogo } from "@/components/BrandLogo";
 
 // MUI Icons
 import StarIcon from "@mui/icons-material/Star";
 import VerifiedIcon from "@mui/icons-material/Verified";
-import SchoolIcon from "@mui/icons-material/School";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AuthLayout({
@@ -41,12 +41,13 @@ export default function AuthLayout({
         {/* Top Header & Back Link */}
         <div className="flex items-center justify-between relative z-10">
           <Link href="/" className="flex items-center gap-2.5 text-white group">
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-105 transition-transform shadow-md">
-              <SchoolIcon sx={{ fontSize: 22, color: "#ffffff" }} />
-            </div>
-            <span className="font-headline-md text-xl font-bold tracking-tight">
-              Naik Kelas
-            </span>
+            <BrandLogo
+              size="md"
+              priority
+              variant="dark"
+              markClassName="shadow-md transition-transform group-hover:scale-105"
+              textClassName="text-white"
+            />
           </Link>
         </div>
 
@@ -127,10 +128,7 @@ export default function AuthLayout({
             href="/"
             className="flex items-center gap-2 text-primary font-bold text-lg"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-xs">
-              <SchoolIcon sx={{ fontSize: 18 }} />
-            </div>
-            <span>Naik Kelas</span>
+            <BrandLogo size="sm" priority />
           </Link>
 
           <div className="flex items-center gap-2">

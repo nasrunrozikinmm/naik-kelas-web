@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { removeItem, setQty, clearCart } from "@/store/slices/cartSlice";
 import { AppShell } from "@/components/AppShell";
@@ -22,6 +23,7 @@ import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 export default function CartPage() {
+  const router = useRouter();
   const items = useAppSelector((s) => s.cart.items);
   const dispatch = useAppDispatch();
   const { confirm } = useConfirm();
@@ -36,7 +38,7 @@ export default function CartPage() {
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
-    if (promoCode.trim().toUpperCase() === "VISIONJUARA") {
+    if (promoCode.trim().toUpperCase() === "NAIKKELASJUARA") {
       setPromoApplied(true);
     }
   };
@@ -258,7 +260,7 @@ export default function CartPage() {
                     <input
                       id="promo-input"
                       type="text"
-                      placeholder="Contoh: VISIONJUARA"
+                      placeholder="Contoh: NAIKKELASJUARA"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
                       disabled={promoApplied}
@@ -291,12 +293,23 @@ export default function CartPage() {
                 </div>
 
                 {/* Checkout CTA */}
-                <Link
-                  href="/checkout"
-                  className="w-full py-3.5 bg-primary text-white font-bold rounded-xl text-center text-sm block hover:bg-primary/90 shadow-xs transition-all active:scale-[0.99]"
+                <button
+                  type="button"
+                  onClick={() => {
+                    const checkoutItems = items.map((it) => ({
+                      id: it.id,
+                      title: it.title,
+                      price: it.price,
+                      quantity: it.qty,
+                      type: it.type || "course",
+                    }));
+                    localStorage.setItem("nk_checkout_items", JSON.stringify(checkoutItems));
+                    router.push("/checkout");
+                  }}
+                  className="w-full py-3.5 bg-primary text-white font-bold rounded-xl text-center text-sm block hover:bg-primary/90 shadow-xs transition-all active:scale-[0.99] cursor-pointer"
                 >
                   Lanjut ke Pembayaran
-                </Link>
+                </button>
 
                 {/* Security Trust Badges */}
                 <div className="pt-4 border-t border-outline-variant/20 space-y-2 text-[11px] text-on-surface-variant">

@@ -7,6 +7,7 @@ import { useAppSelector } from "@/store/hooks";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel } from "@/lib/utils/role";
 import { ThemeToggle } from "./ThemeToggle";
+import { BrandLogo } from "./BrandLogo";
 
 // MUI Icons
 import SearchIcon from "@mui/icons-material/Search";
@@ -30,8 +31,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Top Navigation Bar */}
       <header className="bg-surface border-b border-outline-variant/40 shadow-xs flex justify-between items-center w-full px-4 lg:px-10 h-16 sticky top-0 z-50">
         <div className="flex items-center gap-6 lg:gap-8 flex-1">
-          <Link href="/" className="font-headline-md text-xl lg:text-2xl font-bold text-primary tracking-tight">
-            Naik Kelas
+          <Link href="/" className="shrink-0">
+            <BrandLogo size="md" priority />
           </Link>
           {/* Desktop Search Bar */}
           <div className="hidden md:flex relative w-full max-w-md items-center">
@@ -193,7 +194,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 py-12 mt-auto">
         <div className="max-w-7xl mx-auto px-6 lg:px-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <span className="font-headline-md font-bold text-primary-fixed-dim text-xl">Naik Kelas</span>
+            <BrandLogo size="md" textClassName="text-primary-fixed-dim" variant="dark" />
             <p className="text-sm pr-4 opacity-80 leading-relaxed">
               Membangun masa depan pendidikan Indonesia melalui kolaborasi mentor terverifikasi dan siswa berprestasi.
             </p>

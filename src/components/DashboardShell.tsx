@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel } from "@/lib/utils/role";
+import { BrandLogo } from "@/components/BrandLogo";
 
 // MUI Icons
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
@@ -40,7 +41,7 @@ interface NavItem {
 
 const STUDENT_NAV: NavItem[] = [
   { label: "Dashboard", icon: <DashboardOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/dashboard" },
-  { label: "Pesanan Saya", icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/orders" },
+  { label: "Pesanan Saya", icon: <ShoppingBasketOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/orders" },
   { label: "Kelas & Materi", icon: <MenuBookOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/courses" },
   { label: "Booking", icon: <EventOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/bookings" },
   { label: "Chat", icon: <ChatBubbleOutlineIcon sx={{ fontSize: 20 }} />, href: "/student/chat" },
@@ -51,11 +52,11 @@ const STUDENT_NAV: NavItem[] = [
 
 const TALENT_NAV: NavItem[] = [
   { label: "Dashboard", icon: <AnalyticsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/dashboard" },
+  { label: "Order Masuk", icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/orders" },
   { label: "Profil Publik & KYC", icon: <BadgeOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/profile" },
   { label: "Layanan Saya", icon: <LayersOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/catalogs" },
   { label: "Jadwal", icon: <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/schedule" },
   { label: "Konten", icon: <VideoLibraryOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/media" },
-  { label: "Order", icon: <ShoppingBasketOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/orders" },
   { label: "Chat Siswa", icon: <ForumOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/chat" },
   { label: "Payout", icon: <PaymentsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/payouts" },
   { label: "Pengaturan", icon: <SettingsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/settings" },
@@ -64,9 +65,9 @@ const TALENT_NAV: NavItem[] = [
 const ADMIN_NAV: NavItem[] = [
   { label: "Dashboard", icon: <DashboardOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/dashboard" },
   { label: "Persetujuan Talent", icon: <VerifiedUserOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/talent-approval" },
-  { label: "Manajemen Transaksi", icon: <AccountBalanceOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/transactions" },
-  { label: "Kategori", icon: <CategoryOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/categories" },
   { label: "Manajemen User", icon: <GroupOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/users" },
+  { label: "Transaksi", icon: <AccountBalanceOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/transactions" },
+  { label: "Kategori", icon: <CategoryOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/categories" },
 ];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -91,8 +92,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex h-screen w-64 flex-col bg-surface-container-low border-r border-outline-variant/40 z-40">
         <div className="p-6 pb-4">
-          <Link href="/" className="font-headline-md font-bold text-xl text-primary tracking-tight">
-            Naik Kelas
+          <Link href="/" className="inline-flex">
+            <BrandLogo size="md" priority />
           </Link>
         </div>
 
@@ -195,7 +196,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-5 flex items-center justify-between border-b border-outline-variant/40">
-              <span className="font-headline-md font-bold text-lg text-primary">Naik Kelas</span>
+              <BrandLogo size="sm" />
               <button
                 aria-label="Tutup Menu"
                 onClick={() => setMobileMenuOpen(false)}

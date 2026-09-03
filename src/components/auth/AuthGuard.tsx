@@ -10,7 +10,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { apiClient } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { setSession, clearSession } from '@/store/slices/authSlice';
-import { getStoredSession } from '@/lib/auth/session';
+import { getStoredSession, getCookie, AUTH_COOKIES } from '@/lib/auth/session';
 import { getRoleDashboardUrl } from '@/lib/utils/role';
 import type { UserRole } from '@/types/domain';
 
@@ -43,25 +43,43 @@ export default function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
         return;
       }
 
+      // If no token or cookie exists at all, redirect immediately without hanging
+      const hasAnyToken =
+        getCookie(AUTH_COOKIES.TOKEN) ||
+        getCookie("vision_token") ||
+        getCookie("refresh_token");
+
+      if (!hasAnyToken) {
+        dispatch(clearSession());
+        setIsVerifying(false);
+        if (typeof window !== "undefined") {
+          window.location.href = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+        }
+        return;
+      }
+
       // 3. Fallback: try refresh token API call
       try {
         const response = await apiClient.post(endpoints.auth.refreshToken);
         const authData = response.data?.data;
         if (!authData?.user) {
-          throw new Error('No user data');
+          throw new Error("No user data");
         }
-        
-        const userRoles: UserRole[] = authData.user.roles || ['student'];
-        dispatch(setSession({
-          userId: authData.user.id,
-          displayName: authData.user.name,
-          roles: userRoles,
-          activeRole: userRoles[0],
-          accessToken: authData.access_token,
-        }));
+        const userRoles: UserRole[] = authData.user.roles || ["student"];
+        dispatch(
+          setSession({
+            userId: authData.user.id,
+            displayName: authData.user.name,
+            roles: userRoles,
+            activeRole: userRoles[0],
+            accessToken: authData.access_token,
+          })
+        );
       } catch {
         dispatch(clearSession());
-        router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
+        if (typeof window !== "undefined") {
+          window.location.href = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+        }
       } finally {
         setIsVerifying(false);
       }
