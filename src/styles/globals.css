@@ -128,3 +128,48 @@ button.bg-error,
 .MuiButton-containedSecondary {
   color: #ffffff !important;
 }
+
+/* Sidebar navigation links & buttons styling: anti-black text guarantee */
+aside a,
+aside button {
+  border-radius: 10px !important;
+}
+
+aside nav a:not([data-active="true"]):not(.bg-primary) {
+  color: #475569 !important;
+}
+
+.dark aside nav a:not([data-active="true"]):not(.bg-primary) {
+  color: #cbd5e1 !important;
+}
+
+aside nav a:not([data-active="true"]):not(.bg-primary):hover {
+  color: #1a56db !important;
+  background-color: var(--color-surface-variant) !important;
+}
+
+.dark aside nav a:not([data-active="true"]):not(.bg-primary):hover {
+  color: #93c5fd !important;
+}
+
+aside nav a[data-active="true"],
+aside nav a.bg-primary {
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
+aside nav a[data-active="true"] *,
+aside nav a.bg-primary * {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+aside button[class*="text-error"],
+aside button.text-error {
+  color: #dc2626 !important;
+}
+.dark aside button[class*="text-error"],
+.dark aside button.text-error {
+  color: #f87171 !important;
+}
+

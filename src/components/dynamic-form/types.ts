@@ -40,6 +40,7 @@ export interface FieldConfig {
   type: FieldType;
   placeholder?: string;
   defaultValue?: unknown;
+  disabled?: boolean;
   validation?: FieldValidation;
   // For select/radio/checkbox options
   options?: { label: string; value: string | number }[];

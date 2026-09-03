@@ -14,7 +14,6 @@ import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import StarBorderOutlinedIcon from "@mui/icons-material/StarBorderOutlined";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import AnalyticsOutlinedIcon from "@mui/icons-material/AnalyticsOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
@@ -46,7 +45,6 @@ const STUDENT_NAV: NavItem[] = [
   { label: "Booking", icon: <EventOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/bookings" },
   { label: "Chat", icon: <ChatBubbleOutlineIcon sx={{ fontSize: 20 }} />, href: "/student/chat" },
   { label: "Ulasan", icon: <StarBorderOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/reviews" },
-  { label: "Profil & Preferensi", icon: <PersonOutlineIcon sx={{ fontSize: 20 }} />, href: "/student/preferences" },
   { label: "Pengaturan", icon: <SettingsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/settings" },
 ];
 
@@ -69,6 +67,7 @@ const ADMIN_NAV: NavItem[] = [
   { label: "Manajemen User", icon: <GroupOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/users" },
   { label: "Transaksi", icon: <AccountBalanceOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/transactions" },
   { label: "Kategori", icon: <CategoryOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/categories" },
+  { label: "Pengaturan", icon: <SettingsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/settings" },
 ];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -115,21 +114,29 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           {/* Navigation Links */}
           <nav className="space-y-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/" && pathname.startsWith(item.href + "/")) ||
+                (item.href.includes("?") && pathname === item.href.split("?")[0]);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  data-active={isActive ? "true" : "false"}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
                     isActive
-                      ? "bg-primary text-white shadow-xs"
-                      : "text-on-surface-variant hover:bg-surface-variant hover:text-on-surface"
+                      ? "bg-primary text-white shadow-xs font-bold"
+                      : "text-slate-600 dark:text-slate-300 hover:bg-surface-variant hover:text-primary"
                   }`}
+                  style={isActive ? { color: "#ffffff", backgroundColor: "var(--color-primary)" } : { color: "#475569" }}
                 >
-                  <span className={isActive ? "text-white" : "text-on-surface-variant"}>
+                  <span
+                    className={isActive ? "text-white" : "text-slate-500"}
+                    style={isActive ? { color: "#ffffff" } : undefined}
+                  >
                     {item.icon}
                   </span>
-                  <span>{item.label}</span>
+                  <span style={isActive ? { color: "#ffffff" } : undefined}>{item.label}</span>
                 </Link>
               );
             })}
@@ -140,7 +147,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="mt-auto p-4 border-t border-outline-variant/40">
           <button
             onClick={logout}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-error hover:bg-red-50 dark:hover:bg-red-950/40 transition-all"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all border border-transparent hover:border-red-200"
+            style={{ color: "#dc2626" }}
           >
             <LogoutOutlinedIcon sx={{ fontSize: 20 }} />
             <span>Keluar</span>
@@ -220,20 +228,30 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
               <nav className="space-y-1">
                 {navItems.map((item) => {
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== "/" && pathname.startsWith(item.href + "/")) ||
+                    (item.href.includes("?") && pathname === item.href.split("?")[0]);
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                      data-active={isActive ? "true" : "false"}
+                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
                         isActive
-                          ? "bg-primary text-white"
-                          : "text-on-surface-variant hover:bg-surface-variant"
+                          ? "bg-primary text-white shadow-xs font-bold"
+                          : "text-slate-600 dark:text-slate-300 hover:bg-surface-variant hover:text-primary"
                       }`}
+                      style={isActive ? { color: "#ffffff", backgroundColor: "var(--color-primary)" } : { color: "#475569" }}
                     >
-                      <span>{item.icon}</span>
-                      <span>{item.label}</span>
+                      <span
+                        className={isActive ? "text-white" : "text-slate-500"}
+                        style={isActive ? { color: "#ffffff" } : undefined}
+                      >
+                        {item.icon}
+                      </span>
+                      <span style={isActive ? { color: "#ffffff" } : undefined}>{item.label}</span>
                     </Link>
                   );
                 })}
@@ -246,7 +264,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   setMobileMenuOpen(false);
                   logout();
                 }}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-error hover:bg-red-50 dark:hover:bg-red-950/40"
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all border border-transparent hover:border-red-200"
+                style={{ color: "#dc2626" }}
               >
                 <LogoutOutlinedIcon sx={{ fontSize: 20 }} />
                 <span>Keluar</span>
