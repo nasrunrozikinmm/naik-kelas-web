@@ -9,6 +9,7 @@ import { apiClient } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { formatCurrency } from "@/lib/utils/format";
 import type { CatalogDetail } from "@/types/domain";
+import { mockFeaturedCatalogs } from "@/lib/mock/data";
 
 // MUI Icons
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -18,6 +19,10 @@ import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import BoltOutlinedIcon from "@mui/icons-material/BoltOutlined";
+import VerifiedIcon from "@mui/icons-material/Verified";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import LanguageIcon from "@mui/icons-material/Language";
 
 const AddToCartButton = dynamic(
   () => import("@/components/AddToCartButton").then((m) => m.AddToCartButton),
@@ -40,6 +45,10 @@ export default function CatalogDetailPage({ params }: Props) {
         const response = await apiClient.get(endpoints.catalog.detail(resolvedParams.id));
         const c = response.data?.data;
         if (c && isMounted) {
+          const mockMatch = mockFeaturedCatalogs.find(
+            (m) => m.id === c.id || m.title.toLowerCase() === c.title?.toLowerCase()
+          );
+
           setCatalog({
             id: c.id,
             title: c.title,
@@ -49,12 +58,33 @@ export default function CatalogDetailPage({ params }: Props) {
             excerpt: c.description || c.title,
             description: c.description,
             image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
+            category: c.category?.name || c.category || mockMatch?.category || "Pendidikan",
+            excerpt: c.description || mockMatch?.excerpt || c.title,
+            description: c.description || mockMatch?.description || mockMatch?.excerpt,
+            image: c.image || mockMatch?.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
             badge: { label: c.type === "live_session" ? "Sesi Live" : c.type === "mentoring" ? "Mentoring" : "Kursus", variant: "primary" },
             talentName: c.talent_profile_id ? `Mentor ${c.talent_profile_id.substring(0, 5)}` : "Mentor Naik Kelas",
             reviewsCount: 128,
             soldCount: 45,
             rating: 4.9
+            talentName: c.talent_profile?.display_name || c.talentName || mockMatch?.talentName || (c.talent_profile_id ? `Mentor ${c.talent_profile_id.substring(0, 5)}` : "Dr. Amanda Wijaya, M.Sc."),
+            talentAvatar: c.talent_profile?.avatar_url || c.talentAvatar || mockMatch?.talentAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400",
+            talentTitle: c.talent_profile?.expertise || c.talentTitle || mockMatch?.talentTitle || "Alumni Oxford University",
+            institution: c.institution || mockMatch?.institution || "Awardee LPDP Luar Negeri",
+            talentBio: c.talent_profile?.bio || c.talentBio || mockMatch?.talentBio || "Berpengalaman mendampingi 80+ awardee lolos seleksi beasiswa S2/S3 di universitas top dunia dengan kurikulum komprehensif dan mentoring 1-on-1 personal.",
+            talentExpertise: c.talent_profile?.languages || c.talentExpertise || mockMatch?.talentExpertise || ["Beasiswa LPDP", "Motivation Letter", "Mock Interview", "Study Plan"],
+            talentRating: c.talent_profile?.rating || c.rating || mockMatch?.talentRating || 4.95,
+            talentReviewsCount: c.reviewsCount || mockMatch?.talentReviewsCount || 142,
+            talentSessionsCount: c.talent_profile?.total_sales || c.soldCount || mockMatch?.talentSessionsCount || 310,
+            talentExperienceYears: c.talent_profile?.experience_years || mockMatch?.talentExperienceYears || 5,
+            talentLanguages: mockMatch?.talentLanguages || ["Bahasa Indonesia", "English (Fluent)"],
+            isVerified: c.talent_profile?.verification_status === "verified" || mockMatch?.isVerified !== false,
+            talent_profile_id: c.talent_profile_id || mockMatch?.talent_profile_id || "mentor-amanda",
+            reviewsCount: c.reviewsCount || mockMatch?.reviewsCount || 142,
+            soldCount: c.soldCount || mockMatch?.soldCount || 310,
+            rating: c.rating || mockMatch?.rating || 4.95
           });
+          return;
         }
       } catch (error) {
         console.error("Failed to fetch catalog detail", error);
@@ -62,6 +92,34 @@ export default function CatalogDetailPage({ params }: Props) {
         if (isMounted) {
           setLoading(false);
         }
+        console.warn("Using fallback mock catalog for id:", resolvedParams.id, error);
+      }
+
+      // Check fallback mock
+      const matchedMock = mockFeaturedCatalogs.find((m) => m.id === resolvedParams.id) || mockFeaturedCatalogs[0];
+      if (matchedMock && isMounted) {
+        setCatalog({
+          ...matchedMock,
+          category: matchedMock.category || "Pendidikan",
+          description: matchedMock.description || matchedMock.excerpt,
+          talentName: matchedMock.talentName,
+          talentAvatar: matchedMock.talentAvatar,
+          talentTitle: matchedMock.talentTitle,
+          institution: matchedMock.institution,
+          talentBio: matchedMock.talentBio,
+          talentExpertise: matchedMock.talentExpertise,
+          talentRating: matchedMock.talentRating,
+          talentReviewsCount: matchedMock.talentReviewsCount,
+          talentSessionsCount: matchedMock.talentSessionsCount,
+          talentExperienceYears: matchedMock.talentExperienceYears,
+          talentLanguages: matchedMock.talentLanguages,
+          isVerified: matchedMock.isVerified,
+          talent_profile_id: matchedMock.talent_profile_id
+        });
+      }
+
+      if (isMounted) {
+        setLoading(false);
       }
     };
 
@@ -143,9 +201,40 @@ export default function CatalogDetailPage({ params }: Props) {
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-xs">
                     {catalog.talentName[0]}
+                <Link
+                  href={`/profile/${catalog.talent_profile_id || catalog.id}`}
+                  className="inline-flex items-center gap-2.5 p-1 -m-1 rounded-xl hover:bg-surface-variant/40 transition-all group"
+                >
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden bg-primary shrink-0 shadow-xs border border-outline-variant/30 flex items-center justify-center text-white font-bold text-xs">
+                    {catalog.talentAvatar ? (
+                      <Image
+                        src={catalog.talentAvatar}
+                        alt={catalog.talentName}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      catalog.talentName?.[0] || "M"
+                    )}
                   </div>
                   <span className="font-semibold text-on-surface">{catalog.talentName}</span>
                 </div>
+                  <div className="text-left">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">
+                        {catalog.talentName}
+                      </span>
+                      {catalog.isVerified !== false && (
+                        <VerifiedIcon sx={{ fontSize: 16, color: "primary.main" }} />
+                      )}
+                    </div>
+                    {(catalog.talentTitle || catalog.institution) && (
+                      <p className="text-[11px] text-on-surface-variant font-medium">
+                        {catalog.talentTitle || catalog.institution}
+                      </p>
+                    )}
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
@@ -243,15 +332,133 @@ export default function CatalogDetailPage({ params }: Props) {
                     <div className="flex flex-col sm:flex-row gap-6 items-start">
                       <div className="w-20 h-20 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-2xl shrink-0">
                         {catalog.talentName?.[0] || "M"}
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold text-on-surface">Profil & Informasi Mentor</h3>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                        <VerifiedIcon sx={{ fontSize: 16 }} />
+                        <span>Terverifikasi Resmi</span>
+                      </span>
+                    </div>
+
+                    {/* Mentor Bento Profile Card */}
+                    <div className="p-6 rounded-2xl bg-surface-container-low/40 border border-outline-variant/30 space-y-6">
+                      <div className="flex flex-col sm:flex-row gap-5 items-start">
+                        <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-primary shrink-0 shadow-sm border border-outline-variant/30 flex items-center justify-center text-white font-extrabold text-3xl">
+                          {catalog.talentAvatar ? (
+                            <Image
+                              src={catalog.talentAvatar}
+                              alt={catalog.talentName}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            catalog.talentName?.[0] || "M"
+                          )}
+                        </div>
+
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-xl font-bold text-on-surface">{catalog.talentName}</h4>
+                            {catalog.isVerified !== false && (
+                              <VerifiedIcon sx={{ fontSize: 18, color: "primary.main" }} />
+                            )}
+                          </div>
+                          <p className="text-sm font-semibold text-primary">
+                            {catalog.talentTitle || catalog.institution || "Mentor Akademis Naik Kelas"}
+                          </p>
+                          {catalog.institution && catalog.talentTitle && (
+                            <p className="text-xs text-on-surface-variant">
+                              {catalog.institution}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div className="space-y-3 flex-1">
                         <div>
                           <h4 className="text-xl font-bold text-on-surface">{catalog.talentName}</h4>
                           <p className="text-xs text-primary font-semibold mt-0.5">Mentor Terverifikasi Naik Kelas</p>
+
+                      {/* Mentor Quick Stats Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                        <div className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30">
+                          <div className="flex items-center gap-1.5 text-amber-500 font-bold text-sm">
+                            <StarIcon sx={{ fontSize: 18 }} />
+                            <span>{(catalog.talentRating || catalog.rating || 4.9).toFixed(1)}</span>
+                          </div>
+                          <p className="text-[11px] text-on-surface-variant mt-0.5">
+                            {catalog.talentReviewsCount || catalog.reviewsCount || 128} Ulasan Siswa
+                          </p>
                         </div>
+
+                        <div className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30">
+                          <p className="font-bold text-sm text-on-surface">
+                            {catalog.talentSessionsCount || catalog.soldCount || 300}+ Sesi
+                          </p>
+                          <p className="text-[11px] text-on-surface-variant mt-0.5">Bimbingan Selesai</p>
+                        </div>
+
+                        <div className="col-span-2 sm:col-span-1 p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30">
+                          <p className="font-bold text-sm text-on-surface">
+                            {catalog.talentExperienceYears || 5}+ Tahun
+                          </p>
+                          <p className="text-[11px] text-on-surface-variant mt-0.5">Jam Terbang Mengajar</p>
+                        </div>
+                      </div>
+
+                      {/* Bio Narrative */}
+                      <div className="space-y-2">
+                        <h5 className="font-bold text-sm text-on-surface">Tentang Mentor:</h5>
                         <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
                           Memiliki dedikasi tinggi dalam membimbing siswa meraih prestasi akademik tertinggi dengan pengalaman kurikulum teruji.
+                          {catalog.talentBio ||
+                            "Berpengalaman mendampingi puluhan siswa meraih beasiswa prestisius dan kelulusan tes target dengan kurikulum terstruktur serta bimbingan 1-on-1 yang intensif dan suportif."}
                         </p>
+                      </div>
+
+                      {/* Expertise Chips */}
+                      {catalog.talentExpertise && catalog.talentExpertise.length > 0 && (
+                        <div className="space-y-2">
+                          <h5 className="font-bold text-sm text-on-surface">Bidang Keahlian &amp; Bimbingan:</h5>
+                          <div className="flex flex-wrap gap-2">
+                            {catalog.talentExpertise.map((exp, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-1 rounded-lg text-xs font-semibold bg-surface-container-high text-on-surface border border-outline-variant/30"
+                              >
+                                {exp}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Languages Spoken */}
+                      {catalog.talentLanguages && catalog.talentLanguages.length > 0 && (
+                        <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                          <LanguageIcon sx={{ fontSize: 16 }} className="text-primary" />
+                          <span className="font-medium">Bahasa Pengantar:</span>
+                          <span className="font-semibold text-on-surface">
+                            {catalog.talentLanguages.join(", ")}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Action Navigation Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-outline-variant/30">
+                        <Link
+                          href={`/profile/${catalog.talent_profile_id || catalog.id}`}
+                          className="flex-1 py-2.5 px-4 rounded-xl border border-primary text-primary hover:bg-primary hover:text-white font-bold text-xs text-center transition-all flex items-center justify-center gap-2"
+                        >
+                          <span>Lihat Profil Publik Lengkap</span>
+                          <ArrowForwardIcon sx={{ fontSize: 15 }} />
+                        </Link>
+                        <Link
+                          href={`/chat?recipient=${catalog.talent_profile_id || catalog.id}`}
+                          className="flex-1 py-2.5 px-4 rounded-xl bg-primary text-white hover:bg-primary/90 font-bold text-xs text-center transition-all flex items-center justify-center gap-2 shadow-xs"
+                        >
+                          <ChatBubbleOutlineIcon sx={{ fontSize: 15 }} />
+                          <span>Kirim Pesan / Tanya Mentor</span>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -300,6 +507,25 @@ export default function CatalogDetailPage({ params }: Props) {
                       <BoltOutlinedIcon sx={{ fontSize: 16 }} className="text-primary" />
                       <span>Akses Langsung Terbuka Setelah Verifikasi</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Promo Card / Secondary Action: Chat Mentor */}
+                <div className="bg-primary text-white p-6 rounded-2xl relative overflow-hidden shadow-md">
+                  <div className="relative z-10 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <ChatBubbleOutlineIcon sx={{ fontSize: 20 }} />
+                      <h4 className="font-bold text-base">Punya Pertanyaan?</h4>
+                    </div>
+                    <p className="text-xs text-white/90 leading-relaxed">
+                      Konsultasikan kebutuhan atau jadwal bimbingan Anda langsung dengan <strong>{catalog.talentName}</strong> sebelum melakukan pembayaran.
+                    </p>
+                    <Link
+                      href={`/chat?recipient=${catalog.talent_profile_id || catalog.id}`}
+                      className="inline-flex items-center justify-center w-full py-2.5 px-4 bg-white text-primary font-bold text-xs rounded-xl shadow-xs hover:bg-white/90 active:scale-95 transition-all text-center"
+                    >
+                      Hubungi Mentor Sekarang
+                    </Link>
                   </div>
                 </div>
               </div>

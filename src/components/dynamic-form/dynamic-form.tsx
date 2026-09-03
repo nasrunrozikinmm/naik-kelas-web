@@ -155,12 +155,10 @@ export default function DynamicForm({
           size="large"
           disabled={isLoading || disabled}
           sx={{
-            py: 1.3,
             py: 1.2,
             mt: extraActions ? 1 : 3,
             textTransform: 'none',
             fontSize: '1rem',
-            fontSize: '0.875rem',
             fontWeight: 700,
             ...submitButtonSx
           }}

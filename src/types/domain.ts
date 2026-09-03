@@ -49,10 +49,38 @@ export interface Catalog {
   schedule_slots?: ScheduleSlot[];
 }
 
+export interface TalentProfileInfo {
+  id: string;
+  name: string;
+  avatar?: string;
+  title?: string;
+  institution?: string;
+  bio?: string;
+  expertise?: string[];
+  rating?: number;
+  reviewsCount?: number;
+  sessionsCount?: number;
+  experienceYears?: number;
+  languages?: string[];
+  isVerified?: boolean;
+}
+
 export interface CatalogCardModel {
   id: string;
   title: string;
   talentName: string;
+  talentAvatar?: string;
+  talentTitle?: string;
+  mentorTitle?: string;
+  institution?: string;
+  talentBio?: string;
+  talentExpertise?: string[];
+  talentRating?: number;
+  talentReviewsCount?: number;
+  talentSessionsCount?: number;
+  talentExperienceYears?: number;
+  talentLanguages?: string[];
+  isVerified?: boolean;
   type: CatalogType | string;
   price: number;
   rating: number;
@@ -69,6 +97,7 @@ export interface CatalogCardModel {
   mentorTitle?: string;
   institution?: string;
   sessionsCount?: number;
+  talentProfile?: TalentProfileInfo;
 }
 
 export interface FeaturedMentor {
@@ -89,6 +118,7 @@ export interface FeaturedMentor {
 export interface CatalogDetail extends CatalogCardModel {
   content?: string;
   requirements?: string[];
+  curriculum?: { title: string; description: string; duration?: string }[];
   scheduleSlots?: {
     id: string;
     startTime: string;

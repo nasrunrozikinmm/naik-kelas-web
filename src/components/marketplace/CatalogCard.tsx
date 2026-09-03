@@ -6,6 +6,7 @@ import Link from "next/link";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import StarIcon from "@mui/icons-material/Star";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import VerifiedIcon from "@mui/icons-material/Verified";
 import { Box, Button, Card, CardActions, CardContent, Chip, Stack, Typography, Avatar } from "@mui/material";
 import { useAppDispatch } from "@/store/hooks";
 import { addItem } from "@/store/slices/cartSlice";
@@ -115,9 +116,83 @@ export function CatalogCard({ catalog }: Readonly<{ catalog: CatalogCardModel }>
 
           <Stack direction="row" spacing={1} alignItems="center">
             <Avatar sx={{ width: 28, height: 28, bgcolor: "primary.light", color: "primary.contrastText", fontSize: "0.75rem", fontWeight: 700 }}>
+          {/* Talent / Mentor Info Block */}
+          <Box
+            component={Link}
+            href={`/profile/${catalog.talent_profile_id || catalog.id}`}
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.25,
+              textDecoration: "none",
+              color: "inherit",
+              p: 0.75,
+              mx: -0.75,
+              borderRadius: 2,
+              transition: "all 0.15s ease",
+              "&:hover": {
+                bgcolor: "action.hover",
+                "& .talent-name": {
+                  color: "primary.main"
+                }
+              }
+            }}
+          >
+            <Avatar
+              src={catalog.talentAvatar}
+              alt={catalog.talentName}
+              sx={{
+                width: 34,
+                height: 34,
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
+                fontSize: "0.8125rem",
+                fontWeight: 700,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+              }}
+            >
               {catalog.talentName?.[0] || "M"}
             </Avatar>
           </Stack>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Typography
+                  className="talent-name"
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: "0.8125rem",
+                    lineHeight: 1.25,
+                    color: "text.primary",
+                    transition: "color 0.15s ease",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  {catalog.talentName || "Mentor Naik Kelas"}
+                </Typography>
+                {catalog.isVerified !== false && (
+                  <VerifiedIcon sx={{ fontSize: 15, color: "#003fb1", flexShrink: 0 }} />
+                )}
+              </Stack>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: "block",
+                  fontSize: "0.72rem",
+                  lineHeight: 1.3,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {catalog.talentTitle || catalog.institution || catalog.mentorTitle || "Mentor Terverifikasi"}
+              </Typography>
+            </Box>
+          </Box>
 
           <Typography
             variant="body2"
