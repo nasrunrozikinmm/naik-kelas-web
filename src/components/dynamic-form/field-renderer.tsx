@@ -54,8 +54,6 @@ const getOutlinedInputSx = (minRows?: number) => ({
     boxSizing: 'border-box',
     fontSize: '0.8125rem',
     ...(minRows
-      ? { minHeight: Math.max(minRows * 24 + 32, 96) }
-      : { height: 56, minHeight: 56 }),
       ? { minHeight: Math.max(minRows * 22 + 28, 88) }
       : { height: 50, minHeight: 50 }),
     '& .MuiOutlinedInput-notchedOutline': {
@@ -134,23 +132,19 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
     case 'radio':
       return (
         <FormControl error={isError} component="fieldset" fullWidth margin="none" required={isRequired} disabled={isDisabled}>
-          <FormLabel component="legend" required={isRequired}>{config.label}</FormLabel>
-          <FormLabel component="legend" required={isRequired} sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
+          <FormLabel component="legend" required={isRequired} sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
           <RadioGroup {...field} row>
             {config.options?.map((opt) => (
               <FormControlLabel 
                 key={opt.value} 
                 value={opt.value} 
-                control={<Radio />} 
-                label={opt.label} 
                 control={<Radio size="small" />} 
                 label={opt.label}
-                componentsProps={{ typography: { sx: { fontSize: '0.8125rem' } } }}
+                componentsProps={{ typography: { sx: { fontSize: '0.875rem' } } }}
               />
             ))}
           </RadioGroup>
-          {isError && <FormHelperText>{helperText}</FormHelperText>}
-          {isError && <FormHelperText sx={{ fontSize: '0.71875rem' }}>{helperText}</FormHelperText>}
+          {isError && <FormHelperText sx={{ fontSize: '0.75rem' }}>{helperText}</FormHelperText>}
         </FormControl>
       );
 
@@ -158,18 +152,15 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
       return (
         <FormControl error={isError} fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <FormControlLabel
-            control={<Checkbox {...field} disabled={isDisabled} checked={!!field.value} />}
             control={<Checkbox size="small" {...field} disabled={isDisabled} checked={!!field.value} />}
             label={
-              <span>
-              <span style={{ fontSize: '0.8125rem', fontWeight: 500 }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
                 {config.label}
                 {isRequired && <span style={{ color: '#ba1a1a', fontWeight: 'bold', marginLeft: '4px' }}>*</span>}
               </span>
             }
           />
-          {isError && <FormHelperText>{helperText}</FormHelperText>}
-          {isError && <FormHelperText sx={{ fontSize: '0.71875rem' }}>{helperText}</FormHelperText>}
+          {isError && <FormHelperText sx={{ fontSize: '0.75rem' }}>{helperText}</FormHelperText>}
         </FormControl>
       );
 
@@ -177,18 +168,15 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
       return (
         <FormControl error={isError} fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <FormControlLabel
-            control={<Switch {...field} disabled={isDisabled} checked={!!field.value} />}
             control={<Switch size="small" {...field} disabled={isDisabled} checked={!!field.value} />}
             label={
-              <span>
-              <span style={{ fontSize: '0.8125rem', fontWeight: 500 }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
                 {config.label}
                 {isRequired && <span style={{ color: '#ba1a1a', fontWeight: 'bold', marginLeft: '4px' }}>*</span>}
               </span>
             }
           />
-          {isError && <FormHelperText>{helperText}</FormHelperText>}
-          {isError && <FormHelperText sx={{ fontSize: '0.71875rem' }}>{helperText}</FormHelperText>}
+          {isError && <FormHelperText sx={{ fontSize: '0.75rem' }}>{helperText}</FormHelperText>}
         </FormControl>
       );
 
@@ -203,8 +191,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
 
       return (
         <FormControl error={isError} component="fieldset" fullWidth margin="none" required={isRequired} disabled={isDisabled}>
-          <FormLabel component="legend" required={isRequired}>{config.label}</FormLabel>
-          <FormLabel component="legend" required={isRequired} sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
+          <FormLabel component="legend" required={isRequired} sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 1 }}>
             {config.options?.map((opt) => (
               <Box
@@ -244,14 +231,13 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
                     )
                   }
                   label={opt.label}
-                  componentsProps={{ typography: { sx: { fontSize: '0.8125rem', fontWeight: 500 } } }}
+                  componentsProps={{ typography: { sx: { fontSize: '0.875rem', fontWeight: 500 } } }}
                   sx={{ mr: 0 }}
                 />
               </Box>
             ))}
           </Box>
-          {isError && <FormHelperText>{helperText}</FormHelperText>}
-          {isError && <FormHelperText sx={{ fontSize: '0.71875rem' }}>{helperText}</FormHelperText>}
+          {isError && <FormHelperText sx={{ fontSize: '0.75rem' }}>{helperText}</FormHelperText>}
         </FormControl>
       );
     }
@@ -351,8 +337,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
           sx={getOutlinedInputSx()}
         >
           {config.options?.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-            <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '0.8125rem', py: 0.85 }}>
+            <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '0.875rem', py: 1 }}>
               {opt.label}
             </MenuItem>
           ))}
@@ -363,8 +348,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
     case 'slider':
       return (
         <FormControl error={isError} fullWidth margin="none" required={isRequired} disabled={isDisabled}>
-          <Typography gutterBottom>
-          <Typography gutterBottom sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+          <Typography gutterBottom sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
             {config.label}
             {isRequired && <span style={{ color: '#ba1a1a', fontWeight: 'bold', marginLeft: '4px' }}>*</span>}
           </Typography>
@@ -376,16 +360,14 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
             min={config.validation?.min || 0}
             max={config.validation?.max || 100}
           />
-          {isError && <FormHelperText>{helperText}</FormHelperText>}
-          {isError && <FormHelperText sx={{ fontSize: '0.71875rem' }}>{helperText}</FormHelperText>}
+          {isError && <FormHelperText sx={{ fontSize: '0.75rem' }}>{helperText}</FormHelperText>}
         </FormControl>
       );
 
     case 'rating':
       return (
         <FormControl error={isError} fullWidth margin="none" required={isRequired} disabled={isDisabled}>
-          <Typography component="legend">
-          <Typography component="legend" sx={{ fontSize: '0.8125rem', fontWeight: 600, mb: 0.5 }}>
+          <Typography component="legend" sx={{ fontSize: '0.875rem', fontWeight: 600, mb: 0.5 }}>
             {config.label}
             {isRequired && <span style={{ color: '#ba1a1a', fontWeight: 'bold', marginLeft: '4px' }}>*</span>}
           </Typography>
@@ -395,8 +377,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
             value={typeof field.value === 'number' ? field.value : 0}
             onChange={(_, newValue) => field.onChange(newValue)}
           />
-          {isError && <FormHelperText>{helperText}</FormHelperText>}
-          {isError && <FormHelperText sx={{ fontSize: '0.71875rem' }}>{helperText}</FormHelperText>}
+          {isError && <FormHelperText sx={{ fontSize: '0.75rem' }}>{helperText}</FormHelperText>}
         </FormControl>
       );
 
@@ -407,10 +388,8 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
     case 'string-list':
       return (
         <FormControl fullWidth margin="none" required={isRequired} disabled={isDisabled}>
-          <FormLabel required={isRequired}>{config.label}</FormLabel>
-          <Alert severity="info" icon={<Create />} sx={{ mt: 1, borderRadius: '10px' }}>
-          <FormLabel required={isRequired} sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
-          <Alert severity="info" icon={<Create />} sx={{ mt: 1, borderRadius: '10px', fontSize: '0.8125rem' }}>
+          <FormLabel required={isRequired} sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
+          <Alert severity="info" icon={<Create />} sx={{ mt: 1, borderRadius: '10px', fontSize: '0.875rem' }}>
             <strong>{config.type}</strong> field: This advanced component requires a 3rd party library installation (e.g. Rich Text, CodeMirror). 
             Currently rendering as a placeholder.
           </Alert>
@@ -423,8 +402,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
     case 'upload-avatar':
       return (
         <FormControl fullWidth margin="none" error={isError} required={isRequired} disabled={isDisabled}>
-          <FormLabel required={isRequired}>{config.label}</FormLabel>
-          <FormLabel required={isRequired} sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
+          <FormLabel required={isRequired} sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
           <Box
             sx={{
               mt: 1,
@@ -451,12 +429,10 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
               {config.type === 'images' ? <ImageIcon fontSize="large" /> : <CloudUpload fontSize="large" />}
             </IconButton>
             <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5, fontSize: '0.8125rem' }}>
-            <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5, fontSize: '0.75rem' }}>
               {config.type === 'upload-box' ? 'Drag and drop files here or click to browse' : 'Click to select file(s)'}
             </Typography>
           </Box>
-          {isError && <FormHelperText>{helperText}</FormHelperText>}
-          {isError && <FormHelperText sx={{ fontSize: '0.71875rem' }}>{helperText}</FormHelperText>}
+          {isError && <FormHelperText sx={{ fontSize: '0.75rem' }}>{helperText}</FormHelperText>}
         </FormControl>
       );
 
