@@ -38,6 +38,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
   const isError = !!fieldState.error;
   const helperText = fieldState.error?.message;
   const isRequired = !!config.validation?.required;
+  const isDisabled = Boolean(config.disabled || config.disable);
 
   // A helper function to cast field.value to an array safely for multiple selections
   const safeArrayValue = Array.isArray(field.value) ? field.value : [];
@@ -49,7 +50,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
   switch (config.type) {
     case 'radio':
       return (
-        <FormControl error={isError} component="fieldset" fullWidth margin="none" required={isRequired}>
+        <FormControl error={isError} component="fieldset" fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <FormLabel component="legend" required={isRequired}>{config.label}</FormLabel>
           <RadioGroup {...field} row>
             {config.options?.map((opt) => (
@@ -67,9 +68,9 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
 
     case 'checkbox':
       return (
-        <FormControl error={isError} fullWidth margin="none" required={isRequired}>
+        <FormControl error={isError} fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <FormControlLabel
-            control={<Checkbox {...field} checked={!!field.value} />}
+            control={<Checkbox {...field} disabled={isDisabled} checked={!!field.value} />}
             label={
               <span>
                 {config.label}
@@ -83,9 +84,9 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
 
     case 'switch':
       return (
-        <FormControl error={isError} fullWidth margin="none" required={isRequired}>
+        <FormControl error={isError} fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <FormControlLabel
-            control={<Switch {...field} checked={!!field.value} />}
+            control={<Switch {...field} disabled={isDisabled} checked={!!field.value} />}
             label={
               <span>
                 {config.label}
@@ -101,12 +102,13 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
     case 'multi-switch': {
       const handleMultiChange = (val: string | number, checked: boolean) => {
         const current = safeArrayValue;
+        if (isDisabled) return;
         const next = checked ? [...current, val] : current.filter(v => v !== val);
         field.onChange(next);
       };
 
       return (
-        <FormControl error={isError} component="fieldset" fullWidth margin="none" required={isRequired}>
+        <FormControl error={isError} component="fieldset" fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <FormLabel component="legend" required={isRequired}>{config.label}</FormLabel>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
             {config.options?.map((opt) => (
@@ -115,11 +117,13 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
                 control={
                   config.type === 'multi-switch' ? (
                     <Switch 
+                      disabled={isDisabled}
                       checked={safeArrayValue.includes(opt.value)}
                       onChange={(e) => handleMultiChange(opt.value, e.target.checked)} 
                     />
                   ) : (
                     <Checkbox 
+                      disabled={isDisabled}
                       checked={safeArrayValue.includes(opt.value)}
                       onChange={(e) => handleMultiChange(opt.value, e.target.checked)} 
                     />
@@ -151,6 +155,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
           return (
             <Autocomplete
               multiple
+              disabled={isDisabled}
               options={options}
               getOptionLabel={(option) => (typeof option === 'string' ? option : option.label)}
               isOptionEqualToValue={(option, val) => String(option.value) === String(val.value)}
@@ -169,6 +174,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
                 <TextField
                   {...params}
                   label={config.label}
+                  disabled={isDisabled}
                   placeholder={config.placeholder}
                   required={isRequired}
                   error={isError}
@@ -185,6 +191,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
 
         return (
           <Autocomplete
+            disabled={isDisabled}
             options={options}
             getOptionLabel={(option) => (typeof option === 'string' ? option : option.label)}
             isOptionEqualToValue={(option, val) => String(option.value) === String(val.value)}
@@ -220,6 +227,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
           {...restField}
           select
           fullWidth
+          disabled={isDisabled}
           required={isRequired}
           label={config.label}
           margin="none"
@@ -240,13 +248,14 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
 
     case 'slider':
       return (
-        <FormControl error={isError} fullWidth margin="none" required={isRequired}>
+        <FormControl error={isError} fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <Typography gutterBottom>
             {config.label}
             {isRequired && <span style={{ color: '#ba1a1a', fontWeight: 'bold', marginLeft: '4px' }}>*</span>}
           </Typography>
           <Slider
             {...field}
+            disabled={isDisabled}
             value={typeof field.value === 'number' ? field.value : 0}
             valueLabelDisplay="auto"
             min={config.validation?.min || 0}
@@ -258,13 +267,14 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
 
     case 'rating':
       return (
-        <FormControl error={isError} fullWidth margin="none" required={isRequired}>
+        <FormControl error={isError} fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <Typography component="legend">
             {config.label}
             {isRequired && <span style={{ color: '#ba1a1a', fontWeight: 'bold', marginLeft: '4px' }}>*</span>}
           </Typography>
           <Rating
             name={field.name}
+            disabled={isDisabled}
             value={typeof field.value === 'number' ? field.value : 0}
             onChange={(_, newValue) => field.onChange(newValue)}
           />
@@ -278,7 +288,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
     case 'field-array':
     case 'string-list':
       return (
-        <FormControl fullWidth margin="none" required={isRequired}>
+        <FormControl fullWidth margin="none" required={isRequired} disabled={isDisabled}>
           <FormLabel required={isRequired}>{config.label}</FormLabel>
           <Alert severity="info" icon={<Create />} sx={{ mt: 1, borderRadius: '10px' }}>
             <strong>{config.type}</strong> field: This advanced component requires a 3rd party library installation (e.g. Rich Text, CodeMirror). 
@@ -292,11 +302,11 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
     case 'images':
     case 'upload-avatar':
       return (
-        <FormControl fullWidth margin="none" error={isError} required={isRequired}>
+        <FormControl fullWidth margin="none" error={isError} required={isRequired} disabled={isDisabled}>
           <FormLabel required={isRequired}>{config.label}</FormLabel>
           <Box sx={{ mt: 1, p: 2, border: '1px dashed #ccc', borderRadius: '10px', textAlign: 'center' }}>
-            <IconButton color="primary" component="label">
-              <input hidden type="file" multiple={config.type === 'images' || config.type === 'upload-box'} accept={config.accept} />
+            <IconButton color="primary" component="label" disabled={isDisabled}>
+              <input hidden type="file" multiple={config.type === 'images' || config.type === 'upload-box'} accept={config.accept} disabled={isDisabled} />
               {config.type === 'images' ? <ImageIcon fontSize="large" /> : <CloudUpload fontSize="large" />}
             </IconButton>
             <Typography variant="body2" color="textSecondary">
@@ -312,6 +322,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
         <TextField
           {...field}
           fullWidth
+          disabled={isDisabled}
           required={isRequired}
           label={config.label}
           placeholder={config.placeholder}
@@ -323,7 +334,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ mr: -1 }}>
+                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ mr: -1 }} disabled={isDisabled}>
                   {showPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
               </InputAdornment>
@@ -341,6 +352,7 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
         <TextField
           {...field}
           fullWidth
+          disabled={isDisabled}
           required={isRequired}
           label={config.label}
           placeholder={config.placeholder}

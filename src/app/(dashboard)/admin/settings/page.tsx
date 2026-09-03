@@ -110,8 +110,6 @@ function AdminSettingsContent() {
     setTimeout(() => setFeedback(null), 4000);
   };
 
-  const handleUpdatePlatform = async (e: React.FormEvent) => {
-    e.preventDefault();
   const handleUpdatePlatform = async (formData: Record<string, unknown>) => {
     try {
       setSubmitting(true);
@@ -123,12 +121,6 @@ function AdminSettingsContent() {
       const wa = (formData.support_whatsapp as string) || supportWhatsapp;
 
       await updatePlatformSettings({
-        platform_fee_percent: platformFee,
-        minimum_payout_amount: minPayout,
-        payment_gateway_mode: gatewayMode,
-        maintenance_mode: maintenanceMode,
-        support_email: supportEmail,
-        support_whatsapp: supportWhatsapp,
         platform_fee_percent: fee,
         minimum_payout_amount: min,
         payment_gateway_mode: mode,
@@ -152,8 +144,6 @@ function AdminSettingsContent() {
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
   const handleUpdateProfile = async (formData: Record<string, unknown>) => {
     try {
       setSubmitting(true);
@@ -161,8 +151,6 @@ function AdminSettingsContent() {
       const ph = (formData.phone as string) ?? phone;
 
       await updateMyProfile({
-        display_name: displayName,
-        phone,
         display_name: name,
         phone: ph,
         bio,
@@ -179,9 +167,6 @@ function AdminSettingsContent() {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
   const handleChangePassword = async (formData: Record<string, unknown>) => {
     const currentPass = formData.current_password as string;
     const newPass = formData.new_password as string;
@@ -191,7 +176,6 @@ function AdminSettingsContent() {
       showFeedback("error", "Konfirmasi kata sandi baru tidak sesuai!");
       return;
     }
-    if (newPassword.length < 8) {
     if (newPass.length < 8) {
       showFeedback("error", "Kata sandi baru minimal 8 karakter!");
       return;
@@ -200,14 +184,9 @@ function AdminSettingsContent() {
     try {
       setSubmitting(true);
       await changePassword({
-        current_password: currentPassword,
-        new_password: newPassword,
         current_password: currentPass,
         new_password: newPass,
       });
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
       showFeedback("success", "Kata sandi superadmin berhasil diperbarui!");
     } catch (err: any) {
       showFeedback("error", err?.response?.data?.error?.message || "Gagal mengubah kata sandi");
@@ -279,16 +258,6 @@ function AdminSettingsContent() {
         <div className="space-y-6">
           {/* TAB 1: KONFIGURASI PLATFORM */}
           {activeTab === "platform" && (
-            <form onSubmit={handleUpdatePlatform} className="space-y-4">
-              <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/40 shadow-xs space-y-6">
-                <div className="pb-3 border-b border-outline-variant/20 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-on-surface">Parameter Finansial & Marketplace</h3>
-                    <p className="text-xs text-on-surface-variant">Aturan pembagian komisi, batasan pencairan dana, dan integrasi payment gateway.</p>
-                  </div>
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                    <SecurityOutlinedIcon sx={{ fontSize: 14 }} /> Khusus Superadmin
-                  </span>
             <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/40 shadow-xs space-y-6">
               <div className="pb-3 border-b border-outline-variant/20 flex items-center justify-between">
                 <div>
@@ -300,116 +269,8 @@ function AdminSettingsContent() {
                 </span>
               </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Platform Fee Percent */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">
-                      Potongan Komisi Platform Naik Kelas (%)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        min="0"
-                        max="50"
-                        required
-                        value={platformFee}
-                        onChange={(e) => setPlatformFee(e.target.value)}
-                        className="w-full pl-3.5 pr-8 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all font-semibold"
-                      />
-                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-on-surface-variant">%</span>
-                    </div>
-                    <span className="text-[11px] text-on-surface-variant block">
-                      Diterapkan langsung saat transaksi checkout pesanan siswa berhasil.
-                    </span>
-                  </div>
-
-                  {/* Minimum Payout Amount */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">
-                      Minimal Penarikan Dana Payout (IDR)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-on-surface-variant">Rp</span>
-                      <input
-                        type="number"
-                        min="10000"
-                        step="5000"
-                        required
-                        value={minPayout}
-                        onChange={(e) => setMinPayout(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all font-semibold"
-                      />
-                    </div>
-                    <span className="text-[11px] text-on-surface-variant block">
-                      Batas saldo minimal agar mentor dapat mengajukan pencairan dana.
-                    </span>
-                  </div>
-
-                  {/* Payment Gateway Mode */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Mode Gateway Midtrans</label>
-                    <select
-                      value={gatewayMode}
-                      onChange={(e) => setGatewayMode(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all font-semibold"
-                    >
-                      <option value="sandbox">Sandbox (Pengujian / Simulasi QRIS & VA)</option>
-                      <option value="production">Production (Uang Riil Aktif)</option>
-                    </select>
-                  </div>
-
-                  {/* Maintenance Mode */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Status Pemeliharaan Sistem (Maintenance)</label>
-                    <select
-                      value={maintenanceMode}
-                      onChange={(e) => setMaintenanceMode(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all font-semibold"
-                    >
-                      <option value="false">Normal (Platform Beroperasi Penuh)</option>
-                      <option value="true">Maintenance (Hanya Admin yang dapat login)</option>
-                    </select>
-                  </div>
-
-                  {/* Support Email */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Email Layanan Pelanggan (CS)</label>
-                    <input
-                      type="email"
-                      required
-                      value={supportEmail}
-                      onChange={(e) => setSupportEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-
-                  {/* Support WhatsApp */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Nomor WhatsApp Resmi Bantuan</label>
-                    <input
-                      type="text"
-                      required
-                      value={supportWhatsapp}
-                      onChange={(e) => setSupportWhatsapp(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-outline-variant/20 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-[10px] hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50"
-                  >
-                    {submitting ? <CircularProgress size={16} sx={{ color: "#ffffff" }} /> : <SaveOutlinedIcon sx={{ fontSize: 16 }} />}
-                    <span>Simpan Konfigurasi Platform</span>
-                  </button>
-                </div>
-              </div>
-            </form>
               <DynamicForm
-                key={`admin-platform-${platformFee}-${minPayout}-${gatewayMode}`}
+                key={`admin-platform-${platformFee}-${minPayout}-${gatewayMode}-${maintenanceMode}`}
                 config={getAdminPlatformConfigFormConfig({
                   platformFee,
                   minPayout,
@@ -437,72 +298,12 @@ function AdminSettingsContent() {
 
           {/* TAB 2: PROFIL ADMIN */}
           {activeTab === "profile" && (
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
-              <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/40 shadow-xs space-y-5">
-                <div className="pb-3 border-b border-outline-variant/20">
             <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/40 shadow-xs space-y-5">
-              <div className="pb-3 border-b border-outline-variant/20 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-on-surface">Data Akun Administrator</h3>
-                  <p className="text-xs text-on-surface-variant">Informasi identitas akun yang digunakan untuk logging aksi audit sistem.</p>
-                </div>
-                <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200">
-                  <VerifiedUserOutlinedIcon sx={{ fontSize: 12 }} /> Otoritas Penuh
-                </span>
+              <div className="pb-3 border-b border-outline-variant/20">
+                <h3 className="text-sm font-bold text-on-surface">Data Akun Administrator</h3>
+                <p className="text-xs text-on-surface-variant">Informasi identitas akun yang digunakan untuk logging aksi audit sistem.</p>
               </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Nama Administrator</label>
-                    <input
-                      type="text"
-                      required
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="Nama Anda"
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-on-surface">Email Superadmin</label>
-                      <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200">
-                        <VerifiedUserOutlinedIcon sx={{ fontSize: 12 }} /> Otoritas Penuh
-                      </span>
-                    </div>
-                    <input
-                      type="email"
-                      disabled
-                      value={email}
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface-container-low text-on-surface-variant border border-outline-variant/30 rounded-[10px] cursor-not-allowed"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Nomor Telepon Internal</label>
-                    <input
-                      type="text"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="08..."
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-outline-variant/20 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-[10px] hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50"
-                  >
-                    {submitting ? <CircularProgress size={16} sx={{ color: "#ffffff" }} /> : <SaveOutlinedIcon sx={{ fontSize: 16 }} />}
-                    <span>Simpan Profil Admin</span>
-                  </button>
-                </div>
-              </div>
-            </form>
               <DynamicForm
                 key={`admin-profile-${displayName}-${email}-${phone}`}
                 config={getAdminProfileFormConfig({ displayName, email, phone })}
@@ -525,68 +326,11 @@ function AdminSettingsContent() {
 
           {/* TAB 3: KEAMANAN SUPERADMIN */}
           {activeTab === "security" && (
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/40 shadow-xs space-y-5 max-w-xl">
-                <div className="pb-3 border-b border-outline-variant/20">
-                  <h3 className="text-sm font-bold text-on-surface">Ubah Kata Sandi Superadmin</h3>
-                  <p className="text-xs text-on-surface-variant">Lindungi akses backend dengan kata sandi berkekuatan tinggi.</p>
-                </div>
             <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/40 shadow-xs space-y-5 max-w-xl">
               <div className="pb-3 border-b border-outline-variant/20">
                 <h3 className="text-sm font-bold text-on-surface">Ubah Kata Sandi Superadmin</h3>
                 <p className="text-xs text-on-surface-variant">Lindungi akses backend dengan kata sandi berkekuatan tinggi.</p>
               </div>
-
-                <div className="space-y-3.5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Kata Sandi Saat Ini</label>
-                    <input
-                      type="password"
-                      required
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Masukkan kata sandi lama"
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Kata Sandi Baru</label>
-                    <input
-                      type="password"
-                      required
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimal 8 karakter"
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface block">Konfirmasi Kata Sandi Baru</label>
-                    <input
-                      type="password"
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Ulangi kata sandi baru"
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-outline-variant/20 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-[10px] hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50"
-                  >
-                    {submitting ? <CircularProgress size={16} sx={{ color: "#ffffff" }} /> : <LockOutlinedIcon sx={{ fontSize: 16 }} />}
-                    <span>Perbarui Kata Sandi</span>
-                  </button>
-                </div>
-              </div>
-            </form>
               <DynamicForm
                 config={changePasswordFormConfig}
                 onSubmit={handleChangePassword}
