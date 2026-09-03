@@ -20,6 +20,35 @@ export interface Category {
   status?: string;
 }
 
+export interface ScheduleSlot {
+  id?: string;
+  catalog_id?: string;
+  talent_profile_id?: string;
+  start_time: string;
+  end_time: string;
+  capacity: number;
+  booked_count?: number;
+  status?: string;
+}
+
+export interface Catalog {
+  id: string;
+  talent_profile_id: string;
+  category_id: string;
+  title: string;
+  description: string;
+  type: CatalogType | string;
+  price: number;
+  duration?: number;
+  quota?: number;
+  status: "draft" | "pending_review" | "published" | "rejected" | "archived" | string;
+  requirements?: string;
+  created_at: string;
+  updated_at: string;
+  category?: Category;
+  schedule_slots?: ScheduleSlot[];
+}
+
 export interface CatalogCardModel {
   id: string;
   title: string;
