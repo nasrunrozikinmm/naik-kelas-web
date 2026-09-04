@@ -29,6 +29,7 @@ export default function ResetPasswordForm() {
   const resetPasswordConfig: FormConfig = {
     submitLabel: 'Simpan Kata Sandi',
     customSchema: z.object({
+      otp: z.string().regex(/^\d{6}$/, { message: "OTP harus terdiri dari 6 digit" }),
       password: z.string().min(8, { message: "Kata sandi minimal 8 karakter" }),
       confirmPassword: z.string()
     }).refine((data) => data.password === data.confirmPassword, {
@@ -36,6 +37,16 @@ export default function ResetPasswordForm() {
       path: ["confirmPassword"],
     }),
     fields: [
+      {
+        name: 'otp',
+        label: 'Kode OTP',
+        type: 'text',
+        placeholder: 'Masukkan 6 digit kode OTP',
+        validation: {
+          required: true,
+          requiredMessage: 'Kode OTP wajib diisi',
+        },
+      },
       {
         name: 'password',
         label: 'Kata Sandi Baru',
@@ -57,7 +68,8 @@ export default function ResetPasswordForm() {
     try {
       await apiClient.post(endpoints.auth.resetPassword, {
         email: email,
-        new_password: data.password as string,
+        otp: data.otp as string,
+        password: data.password as string,
       });
 
       setIsSuccess(true);

@@ -86,6 +86,7 @@ export default function NewCatalogPage() {
         category_id: formData.category_id as string,
         title: formData.title as string,
         description: (formData.description as string) || "",
+        image_url: (formData.image_url as string)?.trim() || undefined,
         type: (formData.type as string) || "live_session",
         price: Number(formData.price),
         duration: formData.duration ? Number(formData.duration) : undefined,

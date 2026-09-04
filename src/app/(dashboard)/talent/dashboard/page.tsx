@@ -64,9 +64,9 @@ export default function TalentDashboardPage() {
         action={
           <Link
             href="/talent/catalogs/new"
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white! rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
           >
-            <AddIcon sx={{ fontSize: 18 }} />
+            <AddIcon sx={{ fontSize: 18, color: "#ffffff" }} />
             <span>Buat Layanan Baru</span>
           </Link>
         }

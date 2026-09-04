@@ -91,12 +91,14 @@ export default function EditCatalogPage({ params }: PageProps) {
       const categoryIdVal = formData.category_id as string;
       const titleVal = formData.title as string;
       const descVal = (formData.description as string) || "";
+      const imageUrlVal = (formData.image_url as string)?.trim() || undefined;
       const reqVal = (formData.requirements as string) || "";
 
       await updateCatalog(catalogId, {
         title: titleVal,
         description: descVal,
         category_id: categoryIdVal,
+        image_url: imageUrlVal,
         price: priceVal,
         duration: durationVal,
         quota: quotaVal,

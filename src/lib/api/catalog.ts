@@ -5,6 +5,7 @@ export interface CatalogCreateInput {
   category_id: string;
   title: string;
   description?: string;
+  image_url?: string;
   type: string;
   price: number;
   duration?: number;
@@ -22,6 +23,7 @@ export interface CatalogUpdateInput {
   category_id?: string;
   title?: string;
   description?: string;
+  image_url?: string;
   price?: number;
   duration?: number;
   quota?: number;

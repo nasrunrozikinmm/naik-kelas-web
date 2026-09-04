@@ -1,9 +1,21 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+} from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PageHeader, StatCard, StatusBadge, EmptyState, TableSkeleton } from "@/components/common";
+import {
+  PageHeader,
+  StatCard,
+  StatusBadge,
+  EmptyState,
+  TableSkeleton,
+} from "@/components/common";
 import { useConfirm } from "@/hooks/useConfirm";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { getMyCatalogs, deleteCatalog } from "@/lib/api/catalog";
@@ -36,7 +48,9 @@ function TalentCatalogsContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const statusParam = searchParams.get("status");
-  const statusFilter = CATALOG_STATUS_TABS.some((tab) => tab.id === statusParam) ? statusParam! : "all";
+  const statusFilter = CATALOG_STATUS_TABS.some((tab) => tab.id === statusParam)
+    ? statusParam!
+    : "all";
 
   const fetchCatalogs = useCallback(async () => {
     try {
@@ -70,7 +84,9 @@ function TalentCatalogsContent() {
       title: "Hapus Layanan?",
       message: (
         <span>
-          Apakah Anda yakin ingin menghapus layanan <strong>&quot;{catalog.title}&quot;</strong>? Layanan yang dihapus tidak akan dapat diakses lagi oleh siswa di katalog marketplace.
+          Apakah Anda yakin ingin menghapus layanan{" "}
+          <strong>&quot;{catalog.title}&quot;</strong>? Layanan yang dihapus
+          tidak akan dapat diakses lagi oleh siswa di katalog marketplace.
         </span>
       ),
       confirmLabel: "Hapus Layanan",
@@ -113,9 +129,15 @@ function TalentCatalogsContent() {
 
   // Statistics
   const totalCount = catalogs.length;
-  const activeCount = catalogs.filter((c) => c.status === "published" || c.status === "active").length;
-  const pendingCount = catalogs.filter((c) => c.status === "pending_review").length;
-  const draftCount = catalogs.filter((c) => c.status === "draft" || c.status === "rejected").length;
+  const activeCount = catalogs.filter(
+    (c) => c.status === "published" || c.status === "active",
+  ).length;
+  const pendingCount = catalogs.filter(
+    (c) => c.status === "pending_review",
+  ).length;
+  const draftCount = catalogs.filter(
+    (c) => c.status === "draft" || c.status === "rejected",
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -134,9 +156,9 @@ function TalentCatalogsContent() {
             </button>
             <Link
               href="/talent/catalogs/new"
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white! rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
             >
-              <AddIcon sx={{ fontSize: 18 }} />
+              <AddIcon sx={{ fontSize: 18, color: "#ffffff" }} />
               <span>Buat Layanan Baru</span>
             </Link>
           </div>
@@ -199,7 +221,10 @@ function TalentCatalogsContent() {
           {/* Search & Type dropdown */}
           <div className="flex items-center gap-2 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
-              <SearchIcon sx={{ fontSize: 18 }} className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" />
+              <SearchIcon
+                sx={{ fontSize: 18 }}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-outline"
+              />
               <input
                 type="text"
                 placeholder="Cari judul layanan..."
@@ -238,7 +263,9 @@ function TalentCatalogsContent() {
                   : "Mulai tawarkan keahlian Anda dengan membuat layanan bimbingan pertama."
               }
               action={
-                searchQuery || statusFilter !== "all" || typeFilter !== "all" ? (
+                searchQuery ||
+                statusFilter !== "all" ||
+                typeFilter !== "all" ? (
                   <button
                     onClick={() => {
                       setSearchQuery("");
@@ -252,9 +279,9 @@ function TalentCatalogsContent() {
                 ) : (
                   <Link
                     href="/talent/catalogs/new"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white! rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
                   >
-                    <AddIcon sx={{ fontSize: 16 }} />
+                    <AddIcon sx={{ fontSize: 16, color: "#ffffff" }} />
                     <span>Buat Layanan Baru</span>
                   </Link>
                 )
@@ -288,11 +315,27 @@ function TalentCatalogsContent() {
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
                 {filteredCatalogs.map((item) => (
-                  <tr key={item.id} className="hover:bg-surface-container-low/40 transition-colors group">
+                  <tr
+                    key={item.id}
+                    className="hover:bg-surface-container-low/40 transition-colors group"
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-surface-container text-on-surface flex items-center justify-center shrink-0">
-                          {getCatalogTypeIcon(item.type)}
+                        <div className="w-10 h-10 rounded-xl bg-surface-container text-on-surface flex items-center justify-center shrink-0 border border-outline-variant/30 overflow-hidden relative">
+                          <span className="text-on-surface flex items-center justify-center">
+                            {getCatalogTypeIcon(item.type)}
+                          </span>
+                          {item.image_url && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={item.image_url}
+                              alt={item.title}
+                              className="absolute inset-0 w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          )}
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors line-clamp-1">
@@ -318,7 +361,10 @@ function TalentCatalogsContent() {
                       {formatCurrency(item.price)}
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={item.status} label={getCatalogStatusLabel(item.status)} />
+                      <StatusBadge
+                        status={item.status}
+                        label={getCatalogStatusLabel(item.status)}
+                      />
                     </td>
                     <td className="px-6 py-4 text-on-surface-variant whitespace-nowrap">
                       {formatDate(item.created_at)}
@@ -365,7 +411,9 @@ export default function TalentCatalogsPage() {
     <Suspense
       fallback={
         <div className="bg-surface-container-lowest rounded-2xl p-12 border border-outline-variant/40 shadow-xs flex items-center justify-center">
-          <span className="text-xs text-on-surface-variant">Memuat layanan...</span>
+          <span className="text-xs text-on-surface-variant">
+            Memuat layanan...
+          </span>
         </div>
       }
     >
