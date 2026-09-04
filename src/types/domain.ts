@@ -46,6 +46,8 @@ export interface Catalog {
   created_at: string;
   updated_at: string;
   category?: Category;
+  talent_profile?: TalentProfileInfo | Record<string, any>;
+  image_url?: string;
   schedule_slots?: ScheduleSlot[];
 }
 
