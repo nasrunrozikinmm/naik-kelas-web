@@ -19,42 +19,38 @@ import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 function enrichCatalogWithTalent(c: any): CatalogCardModel {
-  const match = mockFeaturedCatalogs.find(
-    (m) =>
-      m.id === c.id ||
-      m.talent_profile_id === c.talent_profile_id ||
-      m.title.toLowerCase() === c.title?.toLowerCase()
-  );
+  const p = c.talent_profile;
+  const cat = c.category?.name || c.category || "Umum";
 
   return {
     ...c,
-    category: c.category?.name || c.category || match?.category || "Umum",
-    excerpt: c.excerpt || c.description || match?.excerpt || "Bimbingan terstruktur bersama mentor terverifikasi.",
-    image: c.image_url || c.image || match?.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
-    talentName: c.talent_profile?.display_name || c.talentName || match?.talentName || "Dr. Amanda Wijaya, M.Sc.",
-    talentAvatar: c.talent_profile?.avatar_url || c.talentAvatar || match?.talentAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400",
-    talentTitle: c.talent_profile?.expertise || c.talentTitle || match?.talentTitle || "Alumni Oxford University",
-    institution: c.institution || c.talent_profile?.education_level || match?.institution || "Awardee LPDP Luar Negeri",
-    talentBio: c.talent_profile?.bio || c.talentBio || match?.talentBio,
-    talentExpertise: c.talent_profile?.languages || c.talentExpertise || match?.talentExpertise,
-    talentRating: c.talent_profile?.rating || c.rating || match?.talentRating || 4.95,
-    talentReviewsCount: c.reviewsCount || match?.talentReviewsCount || 128,
-    talentSessionsCount: c.talent_profile?.total_sales || c.soldCount || match?.talentSessionsCount || 310,
-    talentExperienceYears: c.talent_profile?.experience_years || match?.talentExperienceYears || 5,
-    talentLanguages: match?.talentLanguages || ["Bahasa Indonesia", "English (Fluent)"],
-    isVerified: c.talent_profile?.verification_status === "verified" || (c.isVerified ?? match?.isVerified ?? true),
-    talent_profile_id: c.talent_profile_id || match?.talent_profile_id || `mentor-${c.id || "default"}`,
-    rating: c.rating || match?.rating || 4.9,
-    reviewsCount: c.reviewsCount || match?.reviewsCount || 128
+    category: cat,
+    excerpt: c.description || c.excerpt || "",
+    image: c.image_url || c.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
+    talentName: p?.display_name || p?.user?.name || c.talentName || "Mentor Naik Kelas",
+    talentAvatar: p?.avatar_url || c.talentAvatar || "",
+    talentTitle: p?.expertise || c.talentTitle || "Mentor",
+    institution: p?.institution || p?.education_level || c.institution || "",
+    talentBio: p?.bio || c.talentBio || "",
+    talentExpertise: p?.languages || c.talentExpertise || [],
+    talentRating: Number(p?.rating) || c.rating || 5.0,
+    talentReviewsCount: c.reviewsCount || 0,
+    talentSessionsCount: p?.total_sales || c.soldCount || 0,
+    talentExperienceYears: p?.experience_years || 0,
+    talentLanguages: p?.languages || ["Bahasa Indonesia"],
+    isVerified: p?.verification_status === "verified" || c.isVerified === true,
+    talent_profile_id: c.talent_profile_id || p?.id || c.id,
+    rating: Number(p?.rating) || c.rating || 5.0,
+    reviewsCount: c.reviewsCount || 0
   };
 }
 
 export default function MarketplacePage() {
-  const [catalogs, setCatalogs] = useState<CatalogCardModel[]>(mockFeaturedCatalogs);
+  const [catalogs, setCatalogs] = useState<CatalogCardModel[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -70,20 +66,20 @@ export default function MarketplacePage() {
           const apiCats = catRes?.data?.data;
           const apiCatalogs = cataRes?.data?.data;
 
-          if (apiCats && Array.isArray(apiCats) && apiCats.length > 0) {
+          if (apiCats && Array.isArray(apiCats)) {
             setCategories(apiCats);
           }
 
-          if (apiCatalogs && Array.isArray(apiCatalogs) && apiCatalogs.length > 0) {
+          if (apiCatalogs && Array.isArray(apiCatalogs)) {
             setCatalogs(apiCatalogs.map(enrichCatalogWithTalent));
           } else {
-            setCatalogs(mockFeaturedCatalogs);
+            setCatalogs([]);
           }
         }
       } catch (error) {
-        console.warn("Using fallback marketplace data", error);
+        console.warn("Failed to fetch marketplace data", error);
         if (isMounted) {
-          setCatalogs(mockFeaturedCatalogs);
+          setCatalogs([]);
         }
       } finally {
         if (isMounted) {

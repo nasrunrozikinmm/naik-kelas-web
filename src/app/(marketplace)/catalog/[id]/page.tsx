@@ -45,36 +45,34 @@ export default function CatalogDetailPage({ params }: Props) {
         const response = await apiClient.get(endpoints.catalog.detail(resolvedParams.id));
         const c = response.data?.data;
         if (c && isMounted) {
-          const mockMatch = mockFeaturedCatalogs.find(
-            (m) => m.id === c.id || m.title.toLowerCase() === c.title?.toLowerCase()
-          );
-
+          const p = c.talent_profile;
           setCatalog({
             id: c.id,
             title: c.title,
             type: c.type,
             price: c.price,
-            category: c.category?.name || c.category || mockMatch?.category || "Pendidikan",
-            excerpt: c.description || mockMatch?.excerpt || c.title,
-            description: c.description || mockMatch?.description || mockMatch?.excerpt,
-            image: c.image_url || c.image || mockMatch?.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
+            category: c.category?.name || c.category || "Pendidikan",
+            excerpt: c.description || c.title,
+            description: c.description || "",
+            image: c.image_url || c.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
             badge: { label: c.type === "live_session" ? "Sesi Live" : c.type === "mentoring" ? "Mentoring" : "Kursus", variant: "primary" },
-            talentName: c.talent_profile?.display_name || c.talentName || mockMatch?.talentName || (c.talent_profile_id ? `Mentor ${c.talent_profile_id.substring(0, 5)}` : "Dr. Amanda Wijaya, M.Sc."),
-            talentAvatar: c.talent_profile?.avatar_url || c.talentAvatar || mockMatch?.talentAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400",
-            talentTitle: c.talent_profile?.expertise || c.talentTitle || mockMatch?.talentTitle || "Alumni Oxford University",
-            institution: c.institution || c.talent_profile?.education_level || mockMatch?.institution || "Awardee LPDP Luar Negeri",
-            talentBio: c.talent_profile?.bio || c.talentBio || mockMatch?.talentBio || "Berpengalaman mendampingi 80+ awardee lolos seleksi beasiswa S2/S3 di universitas top dunia dengan kurikulum komprehensif dan mentoring 1-on-1 personal.",
-            talentExpertise: c.talent_profile?.languages || c.talentExpertise || mockMatch?.talentExpertise || ["Beasiswa LPDP", "Motivation Letter", "Mock Interview", "Study Plan"],
-            talentRating: c.talent_profile?.rating || c.rating || mockMatch?.talentRating || 4.95,
-            talentReviewsCount: c.reviewsCount || mockMatch?.talentReviewsCount || 142,
-            talentSessionsCount: c.talent_profile?.total_sales || c.soldCount || mockMatch?.talentSessionsCount || 310,
-            talentExperienceYears: c.talent_profile?.experience_years || mockMatch?.talentExperienceYears || 5,
-            talentLanguages: mockMatch?.talentLanguages || ["Bahasa Indonesia", "English (Fluent)"],
-            isVerified: c.talent_profile?.verification_status === "verified" || mockMatch?.isVerified !== false,
-            talent_profile_id: c.talent_profile_id || mockMatch?.talent_profile_id || "mentor-amanda",
-            reviewsCount: c.reviewsCount || mockMatch?.reviewsCount || 142,
-            soldCount: c.soldCount || mockMatch?.soldCount || 310,
-            rating: c.rating || mockMatch?.rating || 4.95
+            talentName: p?.display_name || p?.user?.name || c.talentName || "Mentor Naik Kelas",
+            talentAvatar: p?.avatar_url || c.talentAvatar || "",
+            talentTitle: p?.expertise || c.talentTitle || "Mentor",
+            institution: p?.institution || p?.education_level || c.institution || "",
+            talentBio: p?.bio || c.talentBio || "",
+            talentExpertise: p?.languages || c.talentExpertise || [],
+            talentRating: Number(p?.rating) || c.rating || 5.0,
+            talentReviewsCount: c.reviewsCount || 0,
+            talentSessionsCount: p?.total_sales || c.soldCount || 0,
+            talentExperienceYears: p?.experience_years || 0,
+            talentLanguages: p?.languages || ["Bahasa Indonesia"],
+            isVerified: p?.verification_status === "verified" || c.isVerified === true,
+            talent_profile_id: c.talent_profile_id || p?.id || c.id,
+            reviewsCount: c.reviewsCount || 0,
+            soldCount: p?.total_sales || c.soldCount || 0,
+            rating: Number(p?.rating) || c.rating || 5.0,
+            scheduleSlots: c.schedule_slots || []
           });
           return;
         }
@@ -84,33 +82,6 @@ export default function CatalogDetailPage({ params }: Props) {
         if (isMounted) {
           setLoading(false);
         }
-      }
-
-      // Check fallback mock
-      const matchedMock = mockFeaturedCatalogs.find((m) => m.id === resolvedParams.id) || mockFeaturedCatalogs[0];
-      if (matchedMock && isMounted) {
-        setCatalog({
-          ...matchedMock,
-          category: matchedMock.category || "Pendidikan",
-          description: matchedMock.description || matchedMock.excerpt,
-          talentName: matchedMock.talentName,
-          talentAvatar: matchedMock.talentAvatar,
-          talentTitle: matchedMock.talentTitle,
-          institution: matchedMock.institution,
-          talentBio: matchedMock.talentBio,
-          talentExpertise: matchedMock.talentExpertise,
-          talentRating: matchedMock.talentRating,
-          talentReviewsCount: matchedMock.talentReviewsCount,
-          talentSessionsCount: matchedMock.talentSessionsCount,
-          talentExperienceYears: matchedMock.talentExperienceYears,
-          talentLanguages: matchedMock.talentLanguages,
-          isVerified: matchedMock.isVerified,
-          talent_profile_id: matchedMock.talent_profile_id
-        });
-      }
-
-      if (isMounted) {
-        setLoading(false);
       }
     };
 

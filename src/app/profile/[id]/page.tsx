@@ -1,11 +1,12 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { CatalogCard } from "@/components/marketplace/CatalogCard";
-import { mockFeaturedCatalogs } from "@/lib/mock/data";
+import { apiClient } from "@/lib/api/client";
+import type { CatalogCardModel } from "@/types/domain";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import StarIcon from "@mui/icons-material/Star";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
@@ -18,43 +19,103 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
   const resolvedParams = use(params);
   const { id } = resolvedParams;
 
-  // Resolve mentor data from mockFeaturedCatalogs or matching talent ID
-  const matchedCatalog =
-    mockFeaturedCatalogs.find(
-      (c) =>
-        c.talent_profile_id === id ||
-        c.id === id ||
-        c.talentName.toLowerCase().includes(id.toLowerCase())
-    ) || mockFeaturedCatalogs[0];
+  const [profile, setProfile] = useState<any>(null);
+  const [catalogs, setCatalogs] = useState<CatalogCardModel[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const mentorName = matchedCatalog.talentName || "Dr. Amanda Wijaya, M.Sc.";
-  const mentorAvatar =
-    matchedCatalog.talentAvatar ||
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400";
-  const mentorTitle =
-    matchedCatalog.talentTitle || matchedCatalog.institution || "Alumni Oxford University";
-  const institution =
-    matchedCatalog.institution || "Awardee LPDP Luar Negeri";
-  const mentorBio =
-    matchedCatalog.talentBio ||
-    "Berpengalaman mendampingi 80+ awardee lolos seleksi beasiswa S2/S3 di Inggris dan Eropa dengan kurasi esai dan simulasi wawancara mendalam.";
-  const expertise = matchedCatalog.talentExpertise || [
-    "Beasiswa LPDP",
-    "Motivation Letter",
-    "Mock Interview",
-    "Oxford & UK Admissions"
-  ];
-  const languages = matchedCatalog.talentLanguages || ["Bahasa Indonesia", "English (Fluent)"];
-  const rating = matchedCatalog.talentRating || 4.98;
-  const reviewsCount = matchedCatalog.talentReviewsCount || 142;
-  const sessionsCount = matchedCatalog.talentSessionsCount || 310;
-  const experienceYears = matchedCatalog.talentExperienceYears || 6;
+  useEffect(() => {
+    let isMounted = true;
 
-  // Find all catalogs by this talent
-  const talentCatalogs = mockFeaturedCatalogs.filter(
-    (c) => c.talentName === matchedCatalog.talentName || c.talent_profile_id === matchedCatalog.talent_profile_id
-  );
-  const displayCatalogs = talentCatalogs.length > 0 ? talentCatalogs : [matchedCatalog];
+    const fetchProfileData = async () => {
+      try {
+        const [profRes, catRes] = await Promise.all([
+          apiClient.get(`/profiles/${id}`).catch(() => null),
+          apiClient.get(`/catalogs?talent_profile_id=${id}&status=published`).catch(() => null)
+        ]);
+
+        if (isMounted) {
+          const profData = profRes?.data?.data;
+          const catData = catRes?.data?.data;
+
+          if (profData) {
+            setProfile(profData);
+          }
+
+          if (catData && Array.isArray(catData)) {
+            const mappedCatalogs = catData.map((c: any) => ({
+              ...c,
+              category: c.category?.name || c.category || "Umum",
+              excerpt: c.description || c.excerpt || "",
+              image: c.image_url || c.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
+              talentName: profData?.display_name || c.talent_profile?.display_name || "Mentor",
+              talentAvatar: profData?.avatar_url || c.talent_profile?.avatar_url || "",
+              talentTitle: profData?.expertise || c.talent_profile?.expertise || "Mentor",
+              institution: profData?.institution || profData?.education_level || c.talent_profile?.institution || "",
+              talentBio: profData?.bio || c.talent_profile?.bio || "",
+              talentRating: Number(profData?.rating) || Number(c.talent_profile?.rating) || 5.0,
+              isVerified: profData?.verification_status === "verified" || c.talent_profile?.verification_status === "verified"
+            }));
+            setCatalogs(mappedCatalogs);
+
+            if (!profData && catData.length > 0 && catData[0].talent_profile) {
+              setProfile(catData[0].talent_profile);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch public profile", err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchProfileData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <AppShell>
+        <div className="max-w-7xl mx-auto px-6 py-24 text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-on-surface-variant font-medium">Memuat profil mentor...</p>
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!profile && catalogs.length === 0) {
+    return (
+      <AppShell>
+        <div className="max-w-7xl mx-auto px-6 py-24 text-center space-y-4">
+          <h2 className="text-2xl font-bold text-on-surface">Profil Mentor Tidak Ditemukan</h2>
+          <p className="text-on-surface-variant max-w-md mx-auto text-sm">
+            Profil yang Anda cari mungkin tidak tersedia atau tautan salah.
+          </p>
+          <Link href="/" className="inline-block px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-sm">
+            Kembali ke Marketplace
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
+
+  const mentorName = profile?.display_name || profile?.user?.name || "Mentor Naik Kelas";
+  const mentorAvatar = profile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400";
+  const mentorTitle = profile?.expertise || "Mentor";
+  const institution = profile?.institution || profile?.education_level || "Mentor Terverifikasi";
+  const mentorBio = profile?.bio || "Profil bimbingan terstruktur bersama mentor resmi Naik Kelas.";
+  const expertise = profile?.expertise ? [profile.expertise] : ["Bimbingan Akademik", "Mentoring"];
+  const languages = profile?.languages || ["Bahasa Indonesia"];
+  const rating = Number(profile?.rating) || 5.0;
+  const reviewsCount = 0;
+  const sessionsCount = profile?.total_sales || 0;
+  const experienceYears = profile?.experience_years || 1;
 
   return (
     <AppShell>
@@ -189,15 +250,22 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
                   </p>
                 </div>
                 <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-                  {displayCatalogs.length} Program
+                  {catalogs.length} Program
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {displayCatalogs.map((catalog) => (
-                  <CatalogCard key={catalog.id} catalog={catalog} />
-                ))}
-              </div>
+              {catalogs.length === 0 ? (
+                <div className="p-8 border border-dashed border-outline-variant/50 rounded-2xl text-center bg-surface-container-low/30">
+                  <p className="text-sm font-semibold text-on-surface">Belum ada program aktif</p>
+                  <p className="text-xs text-on-surface-variant mt-1">Mentor ini belum mempublikasikan program atau kelas saat ini.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {catalogs.map((catalog) => (
+                    <CatalogCard key={catalog.id} catalog={catalog} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </main>
