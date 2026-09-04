@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState } from 'react';
 import { Divider } from '@mui/material';
 import { Google, School, Psychology } from '@mui/icons-material';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
 import { setSession } from '@/store/slices/authSlice';
@@ -16,21 +16,13 @@ import { useDialog } from '@/hooks/useConfirm';
 import type { UserRole } from '@/types/domain';
 import * as z from 'zod';
 
-function RegisterFormContent() {
+export default function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const { alert } = useDialog();
   const [globalError, setGlobalError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const roleParam = searchParams.get('role');
-  const activeRole: 'student' | 'talent' = roleParam === 'talent' ? 'talent' : 'student';
-
-  const handleRoleChange = (role: 'student' | 'talent') => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('role', role);
-    router.replace(`?${params.toString()}`, { scroll: false });
-  };
+  const [activeRole, setActiveRole] = useState<'student' | 'talent'>('student');
 
   const registerFormConfig: FormConfig = {
     submitLabel: activeRole === 'talent' ? 'Daftar sebagai Talent' : 'Daftar sebagai Siswa',
@@ -50,7 +42,7 @@ function RegisterFormContent() {
         name: 'role',
         label: 'Pilih Peran Anda',
         type: 'custom',
-        defaultValue: activeRole,
+        defaultValue: 'student',
         render: ({ field }) => (
           <div className="w-full">
             <label className="block text-xs font-semibold text-on-surface mb-2">
@@ -61,7 +53,7 @@ function RegisterFormContent() {
                 type="button"
                 onClick={() => {
                   field.onChange('student');
-                  handleRoleChange('student');
+                  setActiveRole('student');
                 }}
                 className={`p-3.5 rounded-xl border-2 text-center transition-all flex flex-col items-center justify-center cursor-pointer ${
                   (field.value || 'student') === 'student'
@@ -82,7 +74,7 @@ function RegisterFormContent() {
                 type="button"
                 onClick={() => {
                   field.onChange('talent');
-                  handleRoleChange('talent');
+                  setActiveRole('talent');
                 }}
                 className={`p-3.5 rounded-xl border-2 text-center transition-all flex flex-col items-center justify-center cursor-pointer ${
                   field.value === 'talent'
@@ -155,7 +147,7 @@ function RegisterFormContent() {
         name: data.name as string,
         email: data.email as string,
         password: data.password as string,
-        role: activeRole,
+        role: data.role as string,
       });
 
       const authData = response.data?.data;
@@ -244,13 +236,5 @@ function RegisterFormContent() {
         </Link>
       </div>
     </div>
-  );
-}
-
-export default function RegisterForm() {
-  return (
-    <Suspense fallback={<div className="p-12 text-center text-xs text-on-surface-variant">Memuat formulir...</div>}>
-      <RegisterFormContent />
-    </Suspense>
   );
 }
