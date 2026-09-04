@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader, StatCard, StatusBadge, EmptyState, TableSkeleton } from "@/components/common";
 import { useConfirm } from "@/hooks/useConfirm";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
@@ -26,13 +27,16 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 
-export default function TalentCatalogsPage() {
+function TalentCatalogsContent() {
   const { confirm } = useConfirm();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const statusParam = searchParams.get("status");
+  const statusFilter = CATALOG_STATUS_TABS.some((tab) => tab.id === statusParam) ? statusParam! : "all";
 
   const fetchCatalogs = useCallback(async () => {
     try {
@@ -49,6 +53,17 @@ export default function TalentCatalogsPage() {
   useEffect(() => {
     fetchCatalogs();
   }, [fetchCatalogs]);
+
+  const handleStatusChange = (status: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status === "all") {
+      params.delete("status");
+    } else {
+      params.set("status", status);
+    }
+    const query = params.toString();
+    router.replace(query ? `?${query}` : "?", { scroll: false });
+  };
 
   const handleDelete = async (catalog: Catalog) => {
     const isConfirmed = await confirm({
@@ -169,7 +184,7 @@ export default function TalentCatalogsPage() {
             {CATALOG_STATUS_TABS.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setStatusFilter(tab.id)}
+                onClick={() => handleStatusChange(tab.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
                   statusFilter === tab.id
                     ? "bg-primary text-white shadow-xs"
@@ -227,7 +242,7 @@ export default function TalentCatalogsPage() {
                   <button
                     onClick={() => {
                       setSearchQuery("");
-                      setStatusFilter("all");
+                      handleStatusChange("all");
                       setTypeFilter("all");
                     }}
                     className="px-4 py-2 bg-surface-container rounded-xl text-xs font-bold text-on-surface hover:bg-surface-variant transition-colors"
@@ -342,5 +357,19 @@ export default function TalentCatalogsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function TalentCatalogsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-surface-container-lowest rounded-2xl p-12 border border-outline-variant/40 shadow-xs flex items-center justify-center">
+          <span className="text-xs text-on-surface-variant">Memuat layanan...</span>
+        </div>
+      }
+    >
+      <TalentCatalogsContent />
+    </Suspense>
   );
 }

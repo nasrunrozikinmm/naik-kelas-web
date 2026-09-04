@@ -36,21 +36,15 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 function TalentSettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"profile" | "payout" | "security" | "session">("profile");
+  const tabParam = searchParams.get("tab");
+  const activeTab = ["profile", "payout", "security", "session"].includes(tabParam || "")
+    ? tabParam!
+    : "profile";
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  // Sync tab with URL query parameter ?tab=...
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam === "profile" || tabParam === "payout" || tabParam === "security" || tabParam === "session") {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams]);
-
   const handleTabChange = (tabId: "profile" | "payout" | "security" | "session") => {
-    setActiveTab(tabId);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tabId);
     router.replace(`?${params.toString()}`, { scroll: false });

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { MarketList } from "@/components/marketplace/MarketList";
 import { HeroShortcuts } from "@/components/marketplace/HeroShortcuts";
@@ -45,10 +46,15 @@ function enrichCatalogWithTalent(c: any): CatalogCardModel {
   };
 }
 
-export default function MarketplacePage() {
+function MarketplaceContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [catalogs, setCatalogs] = useState<CatalogCardModel[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const categoryParam = searchParams.get("category");
+  const selectedCategory = categories.find(
+    (category) => category.id === categoryParam || category.slug === categoryParam || category.name === categoryParam
+  )?.id || categoryParam;
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -68,6 +74,17 @@ export default function MarketplacePage() {
 
           if (apiCats && Array.isArray(apiCats)) {
             setCategories(apiCats);
+            const activeCategory = apiCats.find(
+              (category: Category) =>
+                category.id === categoryParam ||
+                category.slug === categoryParam ||
+                category.name === categoryParam
+            );
+            if (activeCategory && categoryParam !== activeCategory.slug) {
+              const params = new URLSearchParams(searchParams.toString());
+              params.set("category", activeCategory.slug || activeCategory.name);
+              router.replace(`?${params.toString()}`, { scroll: false });
+            }
           }
 
           if (apiCatalogs && Array.isArray(apiCatalogs)) {
@@ -102,16 +119,25 @@ export default function MarketplacePage() {
         c.slug?.toLowerCase().includes(keyword.toLowerCase())
     );
     if (matched) {
-      setSelectedCategory(matched.id);
+      updateCategory(matched.id);
       setSearchQuery("");
     } else {
-      setSelectedCategory(null);
+      updateCategory(null);
       setSearchQuery(keyword);
     }
   };
 
+  const updateCategory = (categoryId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const category = categories.find((item) => item.id === categoryId);
+    if (categoryId) params.set("category", category?.slug || category?.name || categoryId);
+    else params.delete("category");
+    const query = params.toString();
+    router.replace(query ? `?${query}` : "?", { scroll: false });
+  };
+
   const handleMentorSelect = (mentorName: string) => {
-    setSelectedCategory(null);
+    updateCategory(null);
     setSearchQuery(mentorName);
   };
 
@@ -230,7 +256,7 @@ export default function MarketplacePage() {
               catalogs={catalogs}
               categories={categories}
               selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
+              onSelectCategory={updateCategory}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
             />
@@ -302,5 +328,13 @@ export default function MarketplacePage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+export default function MarketplacePage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-xs text-on-surface-variant">Memuat marketplace...</div>}>
+      <MarketplaceContent />
+    </Suspense>
   );
 }

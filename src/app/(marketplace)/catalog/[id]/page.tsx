@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { apiClient } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
@@ -31,11 +32,24 @@ const AddToCartButton = dynamic(
 
 type Props = { params: Promise<{ id: string }> };
 
-export default function CatalogDetailPage({ params }: Props) {
+function CatalogDetailContent({ params }: Props) {
   const resolvedParams = use(params);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [catalog, setCatalog] = useState<CatalogDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"deskripsi" | "kurikulum" | "ulasan" | "mentor">("deskripsi");
+  const tabParam = searchParams.get("tab");
+  const activeTab = ["deskripsi", "kurikulum", "ulasan", "mentor"].includes(tabParam || "")
+    ? tabParam!
+    : "deskripsi";
+
+  const handleTabChange = (tab: string) => {
+    const query = new URLSearchParams(searchParams.toString());
+    if (tab === "deskripsi") query.delete("tab");
+    else query.set("tab", tab);
+    const nextQuery = query.toString();
+    router.replace(nextQuery ? `?${nextQuery}` : "?", { scroll: false });
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -207,7 +221,7 @@ export default function CatalogDetailPage({ params }: Props) {
                 {(["deskripsi", "kurikulum", "ulasan", "mentor"] as const).map((tab) => (
                   <button
                     key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => handleTabChange(tab)}
                     className={`px-4 py-2 text-sm font-bold capitalize rounded-xl transition-all ${
                       activeTab === tab
                         ? "bg-primary text-white shadow-xs"
@@ -482,5 +496,13 @@ export default function CatalogDetailPage({ params }: Props) {
         </main>
       </div>
     </AppShell>
+  );
+}
+
+export default function CatalogDetailPage({ params }: Props) {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-xs text-on-surface-variant">Memuat detail layanan...</div>}>
+      <CatalogDetailContent params={params} />
+    </Suspense>
   );
 }

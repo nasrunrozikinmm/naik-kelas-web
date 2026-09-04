@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -36,12 +37,28 @@ import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import CircularProgress from "@mui/material/CircularProgress";
 
-export default function AdminUsersPage() {
+function AdminUsersContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [users, setUsers] = useState<AdminUserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const roleParam = searchParams.get("role");
+  const roleFilter = ["all", "student", "talent", "superadministrator", "suspended"].includes(roleParam || "")
+    ? roleParam!
+    : "all";
+  const statusParam = searchParams.get("status");
+  const statusFilter = ["all", "active", "suspended", "inactive"].includes(statusParam || "")
+    ? statusParam!
+    : "all";
+
+  const updateFilter = (key: "role" | "status", value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "all") params.delete(key);
+    else params.set(key, value);
+    const query = params.toString();
+    router.replace(query ? `?${query}` : "?", { scroll: false });
+  };
 
   // Create User Modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -356,7 +373,7 @@ export default function AdminUsersPage() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setRoleFilter(tab.id)}
+                onClick={() => updateFilter("role", tab.id)}
                 className={`px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all rounded-[10px] flex items-center gap-1.5 ${
                   isActive
                     ? "bg-primary text-white shadow-xs"
@@ -402,7 +419,7 @@ export default function AdminUsersPage() {
             <FilterListIcon sx={{ fontSize: 18 }} className="text-on-surface-variant shrink-0" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => updateFilter("status", e.target.value)}
               className="w-full py-2.5 px-3 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
             >
               <option value="all">Semua Status</option>
@@ -682,5 +699,13 @@ export default function AdminUsersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-xs text-on-surface-variant">Memuat pengguna...</div>}>
+      <AdminUsersContent />
+    </Suspense>
   );
 }

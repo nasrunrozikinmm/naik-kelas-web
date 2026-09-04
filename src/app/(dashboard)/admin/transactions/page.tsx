@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -26,13 +27,26 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import PaymentOutlinedIcon from "@mui/icons-material/PaymentOutlined";
 import Drawer from "@mui/material/Drawer";
 
-export default function AdminTransactionsPage() {
+function AdminTransactionsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState<OrderListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusTab, setStatusTab] = useState<string>("all");
   const [selectedDrawer, setSelectedDrawer] = useState<OrderListItem | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const statusParam = searchParams.get("status");
+  const statusTab = ["all", "paid", "pending", "cancelled"].includes(statusParam || "")
+    ? statusParam!
+    : "all";
+
+  const handleStatusChange = (status: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status === "all") params.delete("status");
+    else params.set("status", status);
+    const query = params.toString();
+    router.replace(query ? `?${query}` : "?", { scroll: false });
+  };
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -201,7 +215,7 @@ export default function AdminTransactionsPage() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setStatusTab(tab.id)}
+                onClick={() => handleStatusChange(tab.id)}
                 className={`px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all rounded-[10px] flex items-center gap-1.5 ${
                   isActive
                     ? "bg-primary text-white shadow-xs"
@@ -545,5 +559,13 @@ export default function AdminTransactionsPage() {
         )}
       </Drawer>
     </div>
+  );
+}
+
+export default function AdminTransactionsPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-xs text-on-surface-variant">Memuat transaksi...</div>}>
+      <AdminTransactionsContent />
+    </Suspense>
   );
 }

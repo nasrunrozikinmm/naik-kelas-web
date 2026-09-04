@@ -45,7 +45,10 @@ const POPULAR_INTERESTS = [
 function StudentSettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"profile" | "learning" | "security" | "notifications">("profile");
+  const tabParam = searchParams.get("tab");
+  const activeTab = ["profile", "learning", "security", "notifications"].includes(tabParam || "")
+    ? tabParam!
+    : "profile";
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -73,16 +76,7 @@ function StudentSettingsContent() {
   const [notifSessionReminder, setNotifSessionReminder] = useState(true);
   const [notifPromo, setNotifPromo] = useState(false);
 
-  // Sync tab with URL query parameter ?tab=...
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam === "learning" || tabParam === "profile" || tabParam === "security" || tabParam === "notifications") {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams]);
-
   const handleTabChange = (tabId: "profile" | "learning" | "security" | "notifications") => {
-    setActiveTab(tabId);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tabId);
     router.replace(`?${params.toString()}`, { scroll: false });

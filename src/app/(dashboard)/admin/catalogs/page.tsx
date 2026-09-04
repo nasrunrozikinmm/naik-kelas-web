@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -39,12 +40,13 @@ import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import CircularProgress from "@mui/material/CircularProgress";
 
-export default function AdminCatalogsPage() {
+function AdminCatalogsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDrawer, setSelectedDrawer] = useState<Catalog | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -54,6 +56,18 @@ export default function AdminCatalogsPage() {
   } | null>(null);
 
   const { confirm } = useConfirm();
+  const statusParam = searchParams.get("status");
+  const statusFilter = ["all", "pending_review", "active", "draft", "rejected", "archived"].includes(statusParam || "")
+    ? statusParam!
+    : "all";
+
+  const handleStatusChange = (status: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status === "all") params.delete("status");
+    else params.set("status", status);
+    const query = params.toString();
+    router.replace(query ? `?${query}` : "?", { scroll: false });
+  };
 
   // Load catalogs and categories
   const fetchData = useCallback(async () => {
@@ -326,7 +340,7 @@ export default function AdminCatalogsPage() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setStatusFilter(tab.id)}
+                onClick={() => handleStatusChange(tab.id)}
                 className={`px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all rounded-[10px] flex items-center gap-1.5 ${
                   isActive
                     ? "bg-primary text-white shadow-xs"
@@ -718,5 +732,13 @@ export default function AdminCatalogsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminCatalogsPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-xs text-on-surface-variant">Memuat katalog...</div>}>
+      <AdminCatalogsContent />
+    </Suspense>
   );
 }

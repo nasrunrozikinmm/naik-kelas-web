@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader, StatCard, StatusBadge, EmptyState, TableSkeleton } from "@/components/common";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { getTalentOrders, OrderListItem } from "@/lib/api/order";
@@ -20,13 +21,18 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import PaymentOutlinedIcon from "@mui/icons-material/PaymentOutlined";
 import Drawer from "@mui/material/Drawer";
 
-export default function TalentOrdersPage() {
+function TalentOrdersContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedDrawer, setSelectedDrawer] = useState<OrderListItem | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const statusParam = searchParams.get("status");
+  const statusFilter = ["all", "active", "pending", "completed", "cancelled"].includes(statusParam || "")
+    ? statusParam!
+    : "all";
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -43,6 +49,17 @@ export default function TalentOrdersPage() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  const handleStatusChange = (status: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status === "all") {
+      params.delete("status");
+    } else {
+      params.set("status", status);
+    }
+    const query = params.toString();
+    router.replace(query ? `?${query}` : "?", { scroll: false });
+  };
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -183,7 +200,7 @@ export default function TalentOrdersPage() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setStatusFilter(tab.id)}
+                onClick={() => handleStatusChange(tab.id)}
                 className={`px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all rounded-[10px] flex items-center gap-1.5 ${
                   isActive
                     ? "bg-primary text-white shadow-xs"
@@ -515,5 +532,19 @@ export default function TalentOrdersPage() {
         )}
       </Drawer>
     </div>
+  );
+}
+
+export default function TalentOrdersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-surface-container-lowest rounded-2xl p-12 border border-outline-variant/40 shadow-xs flex items-center justify-center">
+          <span className="text-xs text-on-surface-variant">Memuat pesanan...</span>
+        </div>
+      }
+    >
+      <TalentOrdersContent />
+    </Suspense>
   );
 }

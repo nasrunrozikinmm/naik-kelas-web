@@ -31,21 +31,15 @@ import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 function AdminSettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"platform" | "profile" | "security">("platform");
+  const tabParam = searchParams.get("tab");
+  const activeTab = ["platform", "profile", "security"].includes(tabParam || "")
+    ? tabParam!
+    : "platform";
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  // Sync tab with URL query parameter ?tab=...
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam === "platform" || tabParam === "profile" || tabParam === "security") {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams]);
-
   const handleTabChange = (tabId: "platform" | "profile" | "security") => {
-    setActiveTab(tabId);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tabId);
     router.replace(`?${params.toString()}`, { scroll: false });

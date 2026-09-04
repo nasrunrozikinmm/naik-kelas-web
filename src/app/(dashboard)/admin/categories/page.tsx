@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -33,11 +34,16 @@ import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRig
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import CircularProgress from "@mui/material/CircularProgress";
 
-export default function AdminCategoriesPage() {
+function AdminCategoriesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterTab, setFilterTab] = useState<"all" | "parents" | "subcategories" | "active" | "inactive">("all");
+  const filterParam = searchParams.get("filter");
+  const filterTab = ["all", "parents", "subcategories", "active", "inactive"].includes(filterParam || "")
+    ? filterParam!
+    : "all";
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,6 +57,14 @@ export default function AdminCategoriesPage() {
   } | null>(null);
 
   const { confirm } = useConfirm();
+
+  const handleFilterChange = (filter: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (filter === "all") params.delete("filter");
+    else params.set("filter", filter);
+    const query = params.toString();
+    router.replace(query ? `?${query}` : "?", { scroll: false });
+  };
 
   const fetchCategoriesList = useCallback(async () => {
     try {
@@ -316,7 +330,7 @@ export default function AdminCategoriesPage() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setFilterTab(tab.id as any)}
+                onClick={() => handleFilterChange(tab.id)}
                 className={`px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all rounded-[10px] flex items-center gap-1.5 ${
                   isActive
                     ? "bg-primary text-white shadow-xs"
@@ -553,5 +567,13 @@ export default function AdminCategoriesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminCategoriesPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-xs text-on-surface-variant">Memuat kategori...</div>}>
+      <AdminCategoriesContent />
+    </Suspense>
   );
 }
