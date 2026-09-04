@@ -182,11 +182,12 @@ export default function NewCatalogPage() {
                 type="submit"
                 disabled={isSubmitting}
                 onClick={() => setSubmitStatus("pending_review")}
+                className="px-6 py-2.5 rounded-[10px] bg-primary !text-white font-bold text-xs hover:bg-primary/90 shadow-xs transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
               >
                 {isSubmitting && submitStatus === "pending_review" && (
                   <CircularProgress size={14} color="inherit" />
                 )}
-                <span>Ajukan Review</span>
+                <span className="!text-white">Ajukan Review</span>
               </button>
             </div>
           }

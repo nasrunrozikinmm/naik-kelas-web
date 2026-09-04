@@ -10,7 +10,6 @@ import { MentorSpotlight } from "@/components/marketplace/MentorSpotlight";
 import { CardSkeleton } from "@/components/common/SkeletonLoader";
 import { apiClient } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { mockFeaturedCatalogs } from "@/lib/mock/data";
 import type { CatalogCardModel, Category } from "@/types/domain";
 
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
@@ -27,8 +26,12 @@ function enrichCatalogWithTalent(c: any): CatalogCardModel {
     ...c,
     category: cat,
     excerpt: c.description || c.excerpt || "",
-    image: c.image_url || c.image || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
-    talentName: p?.display_name || p?.user?.name || c.talentName || "Mentor Naik Kelas",
+    image:
+      c.image_url ||
+      c.image ||
+      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=640",
+    talentName:
+      p?.display_name || p?.user?.name || c.talentName || "Mentor Naik Kelas",
     talentAvatar: p?.avatar_url || c.talentAvatar || "",
     talentTitle: p?.expertise || c.talentTitle || "Mentor",
     institution: p?.institution || p?.education_level || c.institution || "",
@@ -42,7 +45,7 @@ function enrichCatalogWithTalent(c: any): CatalogCardModel {
     isVerified: p?.verification_status === "verified" || c.isVerified === true,
     talent_profile_id: c.talent_profile_id || p?.id || c.id,
     rating: Number(p?.rating) || c.rating || 5.0,
-    reviewsCount: c.reviewsCount || 0
+    reviewsCount: c.reviewsCount || 0,
   };
 }
 
@@ -52,9 +55,13 @@ function MarketplaceContent() {
   const [catalogs, setCatalogs] = useState<CatalogCardModel[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const categoryParam = searchParams.get("category");
-  const selectedCategory = categories.find(
-    (category) => category.id === categoryParam || category.slug === categoryParam || category.name === categoryParam
-  )?.id || categoryParam;
+  const selectedCategory =
+    categories.find(
+      (category) =>
+        category.id === categoryParam ||
+        category.slug === categoryParam ||
+        category.name === categoryParam,
+    )?.id || categoryParam;
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +72,9 @@ function MarketplaceContent() {
       try {
         const [catRes, cataRes] = await Promise.all([
           apiClient.get(endpoints.categories.list).catch(() => null),
-          apiClient.get(`${endpoints.catalog.list}?status=published`).catch(() => null)
+          apiClient
+            .get(`${endpoints.catalog.list}?status=published`)
+            .catch(() => null),
         ]);
 
         if (isMounted) {
@@ -78,11 +87,14 @@ function MarketplaceContent() {
               (category: Category) =>
                 category.id === categoryParam ||
                 category.slug === categoryParam ||
-                category.name === categoryParam
+                category.name === categoryParam,
             );
             if (activeCategory && categoryParam !== activeCategory.slug) {
               const params = new URLSearchParams(searchParams.toString());
-              params.set("category", activeCategory.slug || activeCategory.name);
+              params.set(
+                "category",
+                activeCategory.slug || activeCategory.name,
+              );
               router.replace(`?${params.toString()}`, { scroll: false });
             }
           }
@@ -116,7 +128,7 @@ function MarketplaceContent() {
     const matched = categories.find(
       (c) =>
         c.name.toLowerCase().includes(keyword.toLowerCase()) ||
-        c.slug?.toLowerCase().includes(keyword.toLowerCase())
+        c.slug?.toLowerCase().includes(keyword.toLowerCase()),
     );
     if (matched) {
       updateCategory(matched.id);
@@ -130,7 +142,8 @@ function MarketplaceContent() {
   const updateCategory = (categoryId: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
     const category = categories.find((item) => item.id === categoryId);
-    if (categoryId) params.set("category", category?.slug || category?.name || categoryId);
+    if (categoryId)
+      params.set("category", category?.slug || category?.name || categoryId);
     else params.delete("category");
     const query = params.toString();
     router.replace(query ? `?${query}` : "?", { scroll: false });
@@ -143,13 +156,6 @@ function MarketplaceContent() {
 
   const scrollToCatalog = () => {
     const el = document.getElementById("katalog-section");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const scrollToMentors = () => {
-    const el = document.getElementById("mentor-spotlight");
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
     }
@@ -169,11 +175,14 @@ function MarketplaceContent() {
                 </div>
 
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface leading-tight tracking-tight">
-                  Temukan Mentor dan <span className="text-primary">Materi Belajar</span> Terbaik
+                  Temukan Mentor dan{" "}
+                  <span className="text-primary">Materi Belajar</span> Terbaik
                 </h1>
 
                 <p className="text-sm sm:text-base text-on-surface-variant max-w-lg leading-relaxed">
-                  Dapatkan pendampingan eksklusif dari alumni beasiswa dunia, tutor berprestasi, dan kurikulum teruji untuk mempercepat impian akademis dan karier Anda.
+                  Dapatkan pendampingan eksklusif dari alumni beasiswa dunia,
+                  tutor berprestasi, dan kurikulum teruji untuk mempercepat
+                  impian akademis dan karier Anda.
                 </p>
 
                 {/* Primary Action Buttons */}
@@ -184,15 +193,10 @@ function MarketplaceContent() {
                     className="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 group"
                   >
                     <span>Jelajahi Kelas & Layanan</span>
-                    <ArrowForwardIcon sx={{ fontSize: 16 }} className="group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={scrollToMentors}
-                    className="px-5 py-3 bg-surface-container hover:bg-surface-variant text-on-surface font-bold text-sm rounded-xl transition-all"
-                  >
-                    Lihat Profil Mentor
+                    <ArrowForwardIcon
+                      sx={{ fontSize: 16 }}
+                      className="group-hover:translate-x-0.5 transition-transform"
+                    />
                   </button>
                 </div>
               </div>
@@ -216,8 +220,12 @@ function MarketplaceContent() {
                   </div>
                   <div className="mt-4 flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-primary">Sesi Terdekat</p>
-                      <p className="text-base font-bold text-on-surface">Bedah Esai Beasiswa LPDP & Oxford</p>
+                      <p className="text-xs font-bold text-primary">
+                        Sesi Terdekat
+                      </p>
+                      <p className="text-base font-bold text-on-surface">
+                        Bedah Esai Beasiswa LPDP & Oxford
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -237,14 +245,18 @@ function MarketplaceContent() {
         </section>
 
         {/* 1. Marketplace Content Layout (Katalog sebelum talent/mentor) */}
-        <section id="katalog-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12 scroll-mt-6">
+        <section
+          id="katalog-section"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12 scroll-mt-6"
+        >
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
                 Katalog Layanan & Kelas Bimbingan
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                Pilih bimbingan 1-on-1 privat, live session, video course terstruktur, atau konsultasi esai terarah.
+                Pilih bimbingan 1-on-1 privat, live session, video course
+                terstruktur, atau konsultasi esai terarah.
               </p>
             </div>
           </div>
@@ -279,7 +291,8 @@ function MarketplaceContent() {
                 Mengapa Memilih Belajar di Naik Kelas?
               </h2>
               <p className="text-sm text-on-surface-variant mt-2 leading-relaxed">
-                Ekosistem bimbingan terintegrasi dengan standar kurasi tinggi untuk mendampingi pencapaian akademik dan karier Anda.
+                Ekosistem bimbingan terintegrasi dengan standar kurasi tinggi
+                untuk mendampingi pencapaian akademik dan karier Anda.
               </p>
             </div>
 
@@ -288,9 +301,12 @@ function MarketplaceContent() {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                   <VerifiedUserIcon sx={{ fontSize: 24 }} />
                 </div>
-                <h3 className="text-base font-bold text-on-surface">Mentor Terverifikasi</h3>
+                <h3 className="text-base font-bold text-on-surface">
+                  Mentor Terverifikasi
+                </h3>
                 <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                  Setiap mentor melalui seleksi ketat dokumen KYC, validasi almamater, dan rekam jejak beasiswa sebelum membuka sesi.
+                  Setiap mentor melalui seleksi ketat dokumen KYC, validasi
+                  almamater, dan rekam jejak beasiswa sebelum membuka sesi.
                 </p>
               </div>
 
@@ -298,9 +314,12 @@ function MarketplaceContent() {
                 <div className="w-12 h-12 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center font-bold">
                   <MenuBookIcon sx={{ fontSize: 24 }} />
                 </div>
-                <h3 className="text-base font-bold text-on-surface">Materi Eksklusif & Terarah</h3>
+                <h3 className="text-base font-bold text-on-surface">
+                  Materi Eksklusif & Terarah
+                </h3>
                 <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                  Akses modul bimbingan intensif, bank soal teruji, dan kurikulum aplikatif yang dirancang untuk hasil nyata.
+                  Akses modul bimbingan intensif, bank soal teruji, dan
+                  kurikulum aplikatif yang dirancang untuk hasil nyata.
                 </p>
               </div>
 
@@ -308,9 +327,12 @@ function MarketplaceContent() {
                 <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 flex items-center justify-center font-bold">
                   <ForumIcon sx={{ fontSize: 24 }} />
                 </div>
-                <h3 className="text-base font-bold text-on-surface">Konsultasi 1-on-1 Fleksibel</h3>
+                <h3 className="text-base font-bold text-on-surface">
+                  Konsultasi 1-on-1 Fleksibel
+                </h3>
                 <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                  Jadwal mentoring privat yang fleksibel dengan bedah esai mendalam serta simulasi wawancara interaktif.
+                  Jadwal mentoring privat yang fleksibel dengan bedah esai
+                  mendalam serta simulasi wawancara interaktif.
                 </p>
               </div>
 
@@ -318,9 +340,12 @@ function MarketplaceContent() {
                 <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center justify-center font-bold">
                   <ShieldOutlinedIcon sx={{ fontSize: 24 }} />
                 </div>
-                <h3 className="text-base font-bold text-on-surface">Jaminan Sesi & Transaksi Aman</h3>
+                <h3 className="text-base font-bold text-on-surface">
+                  Jaminan Sesi & Transaksi Aman
+                </h3>
                 <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                  Sistem pembayaran aman dengan jaminan slot bimbingan. Dana diteruskan hanya setelah sesi belajar terlaksana.
+                  Sistem pembayaran aman dengan jaminan slot bimbingan. Dana
+                  diteruskan hanya setelah sesi belajar terlaksana.
                 </p>
               </div>
             </div>
@@ -333,7 +358,13 @@ function MarketplaceContent() {
 
 export default function MarketplacePage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-xs text-on-surface-variant">Memuat marketplace...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-12 text-center text-xs text-on-surface-variant">
+          Memuat marketplace...
+        </div>
+      }
+    >
       <MarketplaceContent />
     </Suspense>
   );

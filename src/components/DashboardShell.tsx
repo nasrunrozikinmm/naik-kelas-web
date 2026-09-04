@@ -36,15 +36,16 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   href: string;
+  disabled?: boolean;
 }
 
 const STUDENT_NAV: NavItem[] = [
   { label: "Dashboard", icon: <DashboardOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/dashboard" },
   { label: "Pesanan Saya", icon: <ShoppingBasketOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/orders" },
-  { label: "Kelas & Materi", icon: <MenuBookOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/courses" },
-  { label: "Booking", icon: <EventOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/bookings" },
-  { label: "Chat", icon: <ChatBubbleOutlineIcon sx={{ fontSize: 20 }} />, href: "/student/chat" },
-  { label: "Ulasan", icon: <StarBorderOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/reviews" },
+  { label: "Kelas & Materi", icon: <MenuBookOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/courses", disabled: true },
+  { label: "Booking", icon: <EventOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/bookings", disabled: true },
+  { label: "Chat", icon: <ChatBubbleOutlineIcon sx={{ fontSize: 20 }} />, href: "/student/chat", disabled: true },
+  { label: "Ulasan", icon: <StarBorderOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/reviews", disabled: true },
   { label: "Pengaturan", icon: <SettingsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/student/settings" },
 ];
 
@@ -53,10 +54,10 @@ const TALENT_NAV: NavItem[] = [
   { label: "Order Masuk", icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/orders" },
   { label: "Profil Publik & KYC", icon: <BadgeOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/profile" },
   { label: "Layanan Saya", icon: <LayersOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/catalogs" },
-  { label: "Jadwal", icon: <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/schedule" },
-  { label: "Konten", icon: <VideoLibraryOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/media" },
-  { label: "Chat Siswa", icon: <ForumOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/chat" },
-  { label: "Payout", icon: <PaymentsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/payouts" },
+  { label: "Jadwal", icon: <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/schedule", disabled: true },
+  { label: "Konten", icon: <VideoLibraryOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/media", disabled: true },
+  { label: "Chat Siswa", icon: <ForumOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/chat", disabled: true },
+  { label: "Payout", icon: <PaymentsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/payouts", disabled: true },
   { label: "Pengaturan", icon: <SettingsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/talent/settings" },
 ];
 
@@ -118,16 +119,27 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 pathname === item.href ||
                 (item.href !== "/" && pathname.startsWith(item.href + "/")) ||
                 (item.href.includes("?") && pathname === item.href.split("?")[0]);
+              const itemClassName = `flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
+                item.disabled
+                  ? "text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+                  : isActive
+                  ? "bg-primary text-white shadow-xs font-bold"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-surface-variant hover:text-primary"
+              }`;
+              if (item.disabled) {
+                return (
+                  <button key={item.href} type="button" disabled aria-disabled="true" className={`${itemClassName} w-full text-left`}>
+                    <span className="text-slate-400 dark:text-slate-500">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   data-active={isActive ? "true" : "false"}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
-                    isActive
-                      ? "bg-primary text-white shadow-xs font-bold"
-                      : "text-slate-600 dark:text-slate-300 hover:bg-surface-variant hover:text-primary"
-                  }`}
+                  className={itemClassName}
                   style={isActive ? { color: "#ffffff", backgroundColor: "var(--color-primary)" } : { color: "#475569" }}
                 >
                   <span
@@ -232,17 +244,28 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     pathname === item.href ||
                     (item.href !== "/" && pathname.startsWith(item.href + "/")) ||
                     (item.href.includes("?") && pathname === item.href.split("?")[0]);
+                  const itemClassName = `flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
+                    item.disabled
+                      ? "text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+                      : isActive
+                      ? "bg-primary text-white shadow-xs font-bold"
+                      : "text-slate-600 dark:text-slate-300 hover:bg-surface-variant hover:text-primary"
+                  }`;
+                  if (item.disabled) {
+                    return (
+                      <button key={item.href} type="button" disabled aria-disabled="true" className={`${itemClassName} w-full text-left`}>
+                        <span className="text-slate-400 dark:text-slate-500">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  }
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
                       data-active={isActive ? "true" : "false"}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-sm font-semibold transition-all ${
-                        isActive
-                          ? "bg-primary text-white shadow-xs font-bold"
-                          : "text-slate-600 dark:text-slate-300 hover:bg-surface-variant hover:text-primary"
-                      }`}
+                      className={itemClassName}
                       style={isActive ? { color: "#ffffff", backgroundColor: "var(--color-primary)" } : { color: "#475569" }}
                     >
                       <span

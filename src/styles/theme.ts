@@ -54,6 +54,10 @@ export const getTheme = (mode: 'light' | 'dark') => {
           },
           contained: {
             color: "#ffffff !important",
+            "& *": {
+              color: "#ffffff !important",
+              fill: "#ffffff !important",
+            },
             "&:hover": {
               color: "#ffffff !important",
             },
@@ -61,6 +65,10 @@ export const getTheme = (mode: 'light' | 'dark') => {
           containedPrimary: {
             color: "#ffffff !important",
             backgroundColor: mode === "dark" ? "#2563eb" : "#003fb1",
+            "& *": {
+              color: "#ffffff !important",
+              fill: "#ffffff !important",
+            },
             "&:hover": {
               backgroundColor: mode === "dark" ? "#1d4ed8" : "#002b80",
               color: "#ffffff !important",
@@ -68,7 +76,13 @@ export const getTheme = (mode: 'light' | 'dark') => {
           },
           containedSecondary: {
             color: "#ffffff !important",
+            backgroundColor: mode === "dark" ? "#fd761a" : "#9d4300",
+            "& *": {
+              color: "#ffffff !important",
+              fill: "#ffffff !important",
+            },
             "&:hover": {
+              backgroundColor: mode === "dark" ? "#ea580c" : "#852b00",
               color: "#ffffff !important",
             },
           },

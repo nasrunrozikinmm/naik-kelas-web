@@ -113,20 +113,87 @@ a {
   text-decoration: none;
 }
 
-/* Global button styling: 10px border radius & text color never black */
+/* Global button styling: 10px border radius & robust contrast guarantee */
 button:not([class*="rounded-full"]),
 .MuiButton-root:not([class*="rounded-full"]) {
   border-radius: 10px !important;
 }
 
+/* Blue / Primary / Action background buttons: text and icons ALWAYS white */
 button.bg-primary,
+button[class*="bg-primary"],
+button[class*="bg-blue-6"],
+button[class*="bg-blue-7"],
+button[class*="bg-blue-8"],
 button.bg-primary-container,
 button.bg-secondary,
 button.bg-error,
+a.bg-primary,
+a[class*="bg-primary"],
+a[class*="bg-blue-6"],
+a[class*="bg-blue-7"],
+a[class*="bg-blue-8"],
+[role="button"][class*="bg-primary"],
+[role="button"][class*="bg-blue-"],
 .MuiButton-contained,
 .MuiButton-containedPrimary,
 .MuiButton-containedSecondary {
   color: #ffffff !important;
+}
+
+button.bg-primary *,
+button[class*="bg-primary"] *,
+button[class*="bg-blue-6"] *,
+button[class*="bg-blue-7"] *,
+button[class*="bg-blue-8"] *,
+button.bg-primary-container *,
+button.bg-secondary *,
+button.bg-error *,
+a.bg-primary *,
+a[class*="bg-primary"] *,
+a[class*="bg-blue-6"] *,
+a[class*="bg-blue-7"] *,
+a[class*="bg-blue-8"] *,
+[role="button"][class*="bg-primary"] *,
+[role="button"][class*="bg-blue-"] *,
+.MuiButton-contained *,
+.MuiButton-containedPrimary *,
+.MuiButton-containedSecondary * {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* White background buttons: text MUST NOT be white */
+button.bg-white,
+button[class*="bg-white"],
+a.bg-white,
+a[class*="bg-white"],
+[role="button"][class*="bg-white"] {
+  color: var(--color-on-surface) !important;
+}
+
+button.bg-white *,
+button[class*="bg-white"] *,
+a.bg-white *,
+a[class*="bg-white"] *,
+[role="button"][class*="bg-white"] * {
+  color: var(--color-on-surface) !important;
+}
+
+/* White background buttons with primary text: explicitly primary colored text & icon */
+button.bg-white.text-primary,
+button[class*="bg-white"][class*="text-primary"],
+a.bg-white.text-primary,
+a[class*="bg-white"][class*="text-primary"] {
+  color: var(--color-primary) !important;
+}
+
+button.bg-white.text-primary *,
+button[class*="bg-white"][class*="text-primary"] *,
+a.bg-white.text-primary *,
+a[class*="bg-white"][class*="text-primary"] * {
+  color: var(--color-primary) !important;
+  fill: var(--color-primary) !important;
 }
 
 /* Sidebar navigation links & buttons styling: anti-black text guarantee */

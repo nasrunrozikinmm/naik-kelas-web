@@ -484,7 +484,7 @@ function CatalogDetailContent({ params }: Props) {
                     </p>
                     <Link
                       href={`/chat?recipient=${catalog.talent_profile_id || catalog.id}`}
-                      className="inline-flex items-center justify-center w-full py-2.5 px-4 bg-white text-primary font-bold text-xs rounded-xl shadow-xs hover:bg-white/90 active:scale-95 transition-all text-center"
+                      className="inline-flex items-center justify-center w-full py-2.5 px-4 bg-white !text-[#003fb1] dark:!text-[#2563eb] font-bold text-xs rounded-xl shadow-xs hover:bg-white/90 active:scale-95 transition-all text-center"
                     >
                       Hubungi Mentor Sekarang
                     </Link>
