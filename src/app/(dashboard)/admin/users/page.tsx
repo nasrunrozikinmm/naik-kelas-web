@@ -98,9 +98,9 @@ function AdminUsersContent() {
   // Dynamic Statistics
   const stats = useMemo(() => {
     const total = users.length;
-    const students = users.filter((u) => u.role === "student" || !u.role).length;
-    const talents = users.filter((u) => u.role === "talent").length;
-    const admins = users.filter((u) => u.role === "superadministrator").length;
+    const students = users.filter((u) => u.roles?.includes("student") || u.role === "student" || (!u.role && (!u.roles || u.roles.length === 0))).length;
+    const talents = users.filter((u) => u.roles?.includes("talent") || u.role === "talent").length;
+    const admins = users.filter((u) => u.roles?.includes("superadministrator") || u.role === "superadministrator").length;
     const suspended = users.filter((u) => u.status === "suspended").length;
 
     return { total, students, talents, admins, suspended };
@@ -118,9 +118,11 @@ function AdminUsersContent() {
         if (roleFilter === "suspended") {
           if (u.status !== "suspended") return false;
         } else if (roleFilter === "student") {
-          if (u.role !== "student" && u.role) return false;
-        } else if (u.role !== roleFilter) {
-          return false;
+          const isStudent = u.roles?.includes("student") || u.role === "student" || (!u.role && (!u.roles || u.roles.length === 0));
+          if (!isStudent) return false;
+        } else {
+          const hasRole = u.roles?.includes(roleFilter) || u.role === roleFilter;
+          if (!hasRole) return false;
         }
       }
 
@@ -497,7 +499,15 @@ function AdminUsersContent() {
 
                     {/* Role */}
                     <td className="py-3 px-4">
-                      {getRoleBadge(user.role as string)}
+                      <div className="flex flex-wrap items-center gap-1">
+                        {user.roles && user.roles.length > 0 ? (
+                          user.roles.map((r) => (
+                            <span key={r}>{getRoleBadge(r)}</span>
+                          ))
+                        ) : (
+                          getRoleBadge(user.role as string)
+                        )}
+                      </div>
                     </td>
 
                     {/* Status */}

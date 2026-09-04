@@ -4,6 +4,7 @@ import type { UserListItem } from '@/types/domain';
 export interface AdminUserListItem extends UserListItem {
   phone?: string;
   status: string;
+  roles?: string[];
 }
 
 export interface AdminCreateUserInput {

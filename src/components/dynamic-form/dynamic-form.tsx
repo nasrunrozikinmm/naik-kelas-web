@@ -160,6 +160,15 @@ export default function DynamicForm({
             textTransform: 'none',
             fontSize: '1rem',
             fontWeight: 700,
+            color: '#ffffff !important',
+            backgroundColor: 'var(--color-primary)',
+            '&:hover': {
+              backgroundColor: 'var(--color-primary)',
+              opacity: 0.9,
+            },
+            '& *': {
+              color: '#ffffff !important',
+            },
             ...submitButtonSx
           }}
         >
