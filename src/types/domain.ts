@@ -222,6 +222,9 @@ export interface CatalogStats {
   total: number;
   active: number;
   pending: number;
+  draft: number;
+  rejected: number;
+  archived: number;
   rejected_or_archived: number;
 }
 

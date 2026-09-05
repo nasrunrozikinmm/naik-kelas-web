@@ -59,6 +59,9 @@ function AdminCatalogsContent() {
     total: 0,
     active: 0,
     pending: 0,
+    draft: 0,
+    rejected: 0,
+    archived: 0,
     rejected_or_archived: 0,
   });
   const debouncedQuery = useDebounce(searchQuery, 350);
@@ -314,9 +317,9 @@ function AdminCatalogsContent() {
             { id: "all", label: "Semua", count: stats.total },
             { id: "pending_review", label: "Menunggu Review", count: stats.pending },
             { id: "active", label: "Aktif", count: stats.active },
-            { id: "draft", label: "Draft" },
-            { id: "rejected", label: "Ditolak" },
-            { id: "archived", label: "Diarsipkan" },
+            { id: "draft", label: "Draft", count: stats.draft },
+            { id: "rejected", label: "Ditolak", count: stats.rejected },
+            { id: "archived", label: "Diarsipkan", count: stats.archived },
           ].map((tab) => {
             const isActive = statusFilter === tab.id;
             return (
@@ -331,13 +334,15 @@ function AdminCatalogsContent() {
                 }`}
               >
                 <span>{tab.label}</span>
-                {tab.count !== undefined && tab.count > 0 && (
+                {tab.count !== undefined && (
                   <span
                     className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                       isActive
                         ? "bg-white/20 text-white"
-                        : tab.id === "pending_review"
+                        : tab.id === "pending_review" && tab.count > 0
                         ? "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300"
+                        : tab.id === "rejected" && tab.count > 0
+                        ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
                         : "bg-surface-container-high text-on-surface-variant"
                     }`}
                   >

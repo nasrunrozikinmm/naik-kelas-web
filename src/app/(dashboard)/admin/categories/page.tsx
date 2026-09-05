@@ -351,7 +351,7 @@ function AdminCategoriesContent() {
             { id: "parents", label: "Kategori Induk", count: stats.parents },
             { id: "subcategories", label: "Subkategori", count: stats.subcategories },
             { id: "active", label: "Aktif", count: stats.active },
-            { id: "inactive", label: "Nonaktif" },
+            { id: "inactive", label: "Nonaktif", count: stats.inactive },
           ].map((tab) => {
             const isActive = filterTab === tab.id;
             return (

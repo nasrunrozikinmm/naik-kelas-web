@@ -56,6 +56,9 @@ function TalentCatalogsContent() {
     total: 0,
     active: 0,
     pending: 0,
+    draft: 0,
+    rejected: 0,
+    archived: 0,
     rejected_or_archived: 0,
   });
   const debouncedQuery = useDebounce(searchQuery, 350);
@@ -218,20 +221,44 @@ function TalentCatalogsContent() {
         {/* Filter Bar */}
         <div className="p-4 border-b border-outline-variant/30 flex flex-col md:flex-row items-center justify-between gap-3 bg-surface-container-low/30">
           {/* Status Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-            {CATALOG_STATUS_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleStatusChange(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
-                  statusFilter === tab.id
-                    ? "bg-primary text-white shadow-xs"
-                    : "text-on-surface-variant hover:bg-surface-variant hover:text-on-surface"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+            {[
+              { id: "all", label: "Semua", count: stats.total },
+              { id: "published", label: "Aktif", count: stats.active },
+              { id: "pending_review", label: "Menunggu Review", count: stats.pending },
+              { id: "draft", label: "Draft", count: stats.draft },
+              { id: "rejected", label: "Ditolak", count: stats.rejected },
+            ].map((tab) => {
+              const isActive = statusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleStatusChange(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-[10px] text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : tab.id === "pending_review" && tab.count > 0
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300"
+                          : tab.id === "rejected" && tab.count > 0
+                          ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
+                          : "bg-surface-container-high text-on-surface-variant"
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Search & Type dropdown */}
