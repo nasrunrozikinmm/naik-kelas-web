@@ -52,6 +52,8 @@ export interface FieldConfig {
   multiple?: boolean;
   searchable?: boolean;
   accept?: string; // for file uploads
+  uploadVariant?: "image" | "document" | "any";
+  uploadFolder?: string;
   minRows?: number; // for multiline text
   
   // For 'custom' FieldType

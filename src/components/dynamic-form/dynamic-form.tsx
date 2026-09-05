@@ -82,16 +82,20 @@ export default function DynamicForm({
               key={section.id || sIdx}
               className={`bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/40 shadow-xs space-y-4 ${section.className || ''}`}
             >
-              {(section.title || section.icon) && (
-                <div className="flex items-center gap-2 text-sm font-bold text-on-surface">
-                  {section.icon}
-                  <span>{section.title}</span>
+              {(section.title || section.icon || section.description) && (
+                <div className="space-y-1">
+                  {(section.title || section.icon) && (
+                    <div className="flex items-center gap-2 text-sm font-bold text-on-surface">
+                      {section.icon}
+                      <span>{section.title}</span>
+                    </div>
+                  )}
+                  {section.description && (
+                    <p className="text-xs leading-relaxed text-on-surface-variant">
+                      {section.description}
+                    </p>
+                  )}
                 </div>
-              )}
-              {section.description && (
-                <p className="text-xs text-on-surface-variant leading-relaxed">
-                  {section.description}
-                </p>
               )}
               <Grid container spacing={spacing}>
                 {section.fields.map((field) => (

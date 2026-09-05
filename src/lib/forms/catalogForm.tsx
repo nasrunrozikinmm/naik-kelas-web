@@ -4,6 +4,7 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import { ScheduleSlotPicker, SlotItem } from "@/components/catalog/ScheduleSlotPicker";
+import { CatalogImageUploader } from "@/components/catalog/CatalogImageUploader";
 import { CATALOG_TYPE_OPTIONS } from "@/lib/utils/catalog";
 import type { FormConfig } from "@/components/dynamic-form";
 import type { Category, Catalog } from "@/types/domain";
@@ -75,49 +76,17 @@ export function getCatalogFormConfig({
           },
           {
             name: "image_url",
-            label: "URL Gambar Cover / Banner Layanan",
+            label: "Gambar Cover / Banner Layanan",
             type: "custom",
             defaultValue: initialData?.image_url || "",
             gridProps: { xs: 12 },
-            render: ({ field, fieldState }) => {
-              const urlVal = typeof field.value === "string" ? field.value.trim() : "";
-              const hasValidImage = urlVal.startsWith("http://") || urlVal.startsWith("https://");
-              return (
-                <div className="w-full space-y-2">
-                  <label className="block text-xs font-semibold text-on-surface">
-                    URL Gambar Cover / Banner
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <input
-                      type="url"
-                      value={urlVal}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      placeholder="https://... (contoh: link gambar dari Unsplash atau media storage)"
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface text-on-surface border border-outline-variant/50 rounded-[10px] focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/50"
-                    />
-                    {hasValidImage && (
-                      <div className="w-20 h-11 rounded-lg overflow-hidden relative bg-surface-container shrink-0 border border-outline-variant/40 shadow-2xs">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={urlVal}
-                          alt="Pratinjau Cover"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-on-surface-variant">
-                    Tautan gambar cover untuk ditampilkan pada kartu katalog di marketplace dan halaman detail.
-                  </p>
-                  {fieldState.error && (
-                    <p className="text-[11px] text-error font-medium">{fieldState.error.message}</p>
-                  )}
-                </div>
-              );
-            },
+            render: ({ field, fieldState }) => (
+              <CatalogImageUploader
+                value={typeof field.value === "string" ? field.value : ""}
+                onChange={(url) => field.onChange(url)}
+                error={fieldState.error?.message}
+              />
+            ),
           },
           {
             name: "description",

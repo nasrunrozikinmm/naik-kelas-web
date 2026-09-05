@@ -439,9 +439,20 @@ function AdminCatalogsContent() {
                       {/* Title & Type */}
                       <td className="py-3 px-4">
                         <div className="flex items-start gap-2.5 max-w-xs sm:max-w-sm">
-                          <div className="p-2 rounded-[10px] bg-surface-container shrink-0 mt-0.5">
-                            {getCatalogTypeIcon(catalog.type)}
-                          </div>
+                          {catalog.image_url ? (
+                            <div className="w-10 h-10 rounded-[10px] overflow-hidden relative bg-surface-container shrink-0 mt-0.5 border border-outline-variant/30 shadow-2xs">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={catalog.image_url}
+                                alt={catalog.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="p-2 rounded-[10px] bg-surface-container shrink-0 mt-0.5">
+                              {getCatalogTypeIcon(catalog.type)}
+                            </div>
+                          )}
                           <div>
                             <p className="font-bold text-on-surface line-clamp-1">
                               {catalog.title}
@@ -564,6 +575,18 @@ function AdminCatalogsContent() {
 
               {/* Drawer Content */}
               <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                {/* Cover Banner Preview */}
+                {selectedDrawer.image_url && (
+                  <div className="w-full aspect-video rounded-2xl overflow-hidden border border-outline-variant/40 bg-surface-container shadow-2xs relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={selectedDrawer.image_url}
+                      alt={selectedDrawer.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
                 {/* Meta Bento Card */}
                 <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/40 space-y-3">
                   <p className="text-xs font-bold text-on-surface flex items-center gap-2">

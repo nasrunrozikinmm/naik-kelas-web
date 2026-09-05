@@ -91,7 +91,7 @@ export default function EditCatalogPage({ params }: PageProps) {
       const categoryIdVal = formData.category_id as string;
       const titleVal = formData.title as string;
       const descVal = (formData.description as string) || "";
-      const imageUrlVal = (formData.image_url as string)?.trim() || undefined;
+      const imageUrlVal = typeof formData.image_url === "string" ? formData.image_url.trim() : undefined;
       const reqVal = (formData.requirements as string) || "";
 
       await updateCatalog(catalogId, {

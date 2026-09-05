@@ -1,10 +1,10 @@
 import apiClient from './client';
-import type { UserListItem } from '@/types/domain';
+import type { UserListItem, UserRole, UserStatus } from '@/types/domain';
 
 export interface AdminUserListItem extends UserListItem {
   phone?: string;
-  status: string;
-  roles?: string[];
+  status: UserStatus;
+  roles?: (UserRole | string)[];
 }
 
 export interface AdminCreateUserInput {
@@ -13,6 +13,13 @@ export interface AdminCreateUserInput {
   phone?: string;
   password: string;
   role: 'student' | 'talent' | 'superadministrator';
+}
+
+export interface AdminUpdateUserInput {
+  name: string;
+  email: string;
+  phone?: string;
+  role: 'student' | 'talent';
 }
 
 export async function getAdminUsers(): Promise<AdminUserListItem[]> {
@@ -25,9 +32,14 @@ export async function createAdminUser(data: AdminCreateUserInput): Promise<Admin
   return res.data?.data;
 }
 
+export async function updateAdminUser(id: string, data: AdminUpdateUserInput): Promise<AdminUserListItem> {
+  const res = await apiClient.put(`/admin/users/${id}`, data);
+  return res.data?.data;
+}
+
 export async function updateAdminUserStatus(
   id: string,
-  status: 'active' | 'suspended' | 'inactive'
+  status: 'active' | 'suspended'
 ): Promise<void> {
   await apiClient.patch(`/admin/users/${id}/status`, { status });
 }

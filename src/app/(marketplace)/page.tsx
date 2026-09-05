@@ -165,7 +165,7 @@ function MarketplaceContent() {
     <AppShell>
       <div className="min-h-screen">
         {/* Hero Area */}
-        <section className="relative w-full overflow-hidden pt-10 pb-12 sm:pt-14 sm:pb-16 lg:pt-16 lg:pb-20 bg-gradient-to-b from-primary/5 via-background to-background">
+        <section className="relative w-full overflow-hidden pt-10 pb-6 sm:pt-14 sm:pb-8 lg:pt-16 lg:pb-10 bg-gradient-to-b from-primary/5 via-background to-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
               <div className="space-y-6 text-left">
@@ -247,7 +247,7 @@ function MarketplaceContent() {
         {/* 1. Marketplace Content Layout (Katalog sebelum talent/mentor) */}
         <section
           id="katalog-section"
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12 scroll-mt-6"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-10 scroll-mt-6"
         >
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>

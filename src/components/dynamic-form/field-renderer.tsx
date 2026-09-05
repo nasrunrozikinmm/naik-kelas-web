@@ -22,6 +22,7 @@ import {
   Autocomplete
 } from '@mui/material';
 import { Visibility, VisibilityOff, CloudUpload, Image as ImageIcon, Create } from '@mui/icons-material';
+import { FileUploader } from '../common/FileUploader';
 import { FieldConfig } from './types';
 import { ControllerRenderProps, ControllerFieldState, UseFormStateReturn } from 'react-hook-form';
 
@@ -398,8 +399,42 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
 
     case 'upload':
     case 'upload-box':
+    case 'upload-avatar': {
+      const isObjectVal = typeof field.value === 'object' && field.value !== null;
+      const urlValue =
+        typeof field.value === 'string'
+          ? field.value
+          : (field.value as { url?: string })?.url || '';
+      const keyValue = isObjectVal ? (field.value as { key?: string })?.key : undefined;
+
+      return (
+        <FileUploader
+          label={config.label}
+          value={urlValue}
+          objectKey={keyValue}
+          onChange={(url, key) => {
+            if (isObjectVal) {
+              field.onChange({ url, key });
+            } else {
+              field.onChange(url);
+            }
+          }}
+          onRemove={() => {
+            if (isObjectVal) {
+              field.onChange({ url: '', key: '' });
+            } else {
+              field.onChange('');
+            }
+          }}
+          variant={config.uploadVariant ?? (config.type === 'upload-avatar' ? 'image' : 'image')}
+          folder={config.uploadFolder ?? 'uploads'}
+          disabled={isDisabled}
+          error={helperText}
+        />
+      );
+    }
+
     case 'images':
-    case 'upload-avatar':
       return (
         <FormControl fullWidth margin="none" error={isError} required={isRequired} disabled={isDisabled}>
           <FormLabel required={isRequired} sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'text.primary', mb: 0.5 }}>{config.label}</FormLabel>
@@ -425,11 +460,11 @@ export default function FieldRenderer({ config, field, fieldState, formState }: 
             }}
           >
             <IconButton color="primary" component="label" disabled={isDisabled}>
-              <input hidden type="file" multiple={config.type === 'images' || config.type === 'upload-box'} accept={config.accept} disabled={isDisabled} />
-              {config.type === 'images' ? <ImageIcon fontSize="large" /> : <CloudUpload fontSize="large" />}
+              <input hidden type="file" multiple accept={config.accept} disabled={isDisabled} />
+              <ImageIcon fontSize="large" />
             </IconButton>
             <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5, fontSize: '0.8125rem' }}>
-              {config.type === 'upload-box' ? 'Drag and drop files here or click to browse' : 'Click to select file(s)'}
+              Pilih beberapa gambar
             </Typography>
           </Box>
           {isError && <FormHelperText sx={{ fontSize: '0.75rem' }}>{helperText}</FormHelperText>}

@@ -8,12 +8,13 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { TableSkeleton } from "@/components/common/SkeletonLoader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { DynamicForm } from "@/components/dynamic-form";
-import { getUserCreateFormConfig, getUserResetPasswordFormConfig } from "@/lib/forms/userForm";
+import { getUserCreateFormConfig, getUserEditFormConfig, getUserResetPasswordFormConfig } from "@/lib/forms/userForm";
 import { useConfirm } from "@/hooks/useConfirm";
 import { formatDate } from "@/lib/utils/format";
 import {
   getAdminUsers,
   createAdminUser,
+  updateAdminUser,
   updateAdminUserStatus,
   resetAdminUserPassword,
   type AdminUserListItem,
@@ -33,9 +34,29 @@ import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
 import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import CircularProgress from "@mui/material/CircularProgress";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error !== "object" || error === null || !("response" in error)) {
+    return fallback;
+  }
+  const response = error.response;
+  if (typeof response !== "object" || response === null || !("data" in response)) {
+    return fallback;
+  }
+  const data = response.data;
+  if (typeof data !== "object" || data === null || !("error" in data)) {
+    return fallback;
+  }
+  const apiError = data.error;
+  if (typeof apiError === "object" && apiError !== null && "message" in apiError && typeof apiError.message === "string") {
+    return apiError.message;
+  }
+  return fallback;
+}
 
 function AdminUsersContent() {
   const router = useRouter();
@@ -62,6 +83,10 @@ function AdminUsersContent() {
 
   // Create User Modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Edit User Modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<AdminUserListItem | null>(null);
 
   // Reset Password Modal
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -108,6 +133,15 @@ function AdminUsersContent() {
 
   // Dynamic Form Configurations
   const userCreateConfig = useMemo(() => getUserCreateFormConfig(), []);
+  const userEditConfig = useMemo(() => {
+    if (!selectedUserForEdit) return null;
+    return getUserEditFormConfig({
+      name: selectedUserForEdit.name,
+      email: selectedUserForEdit.email,
+      phone: selectedUserForEdit.phone,
+      role: selectedUserForEdit.role === "talent" ? "talent" : "student",
+    });
+  }, [selectedUserForEdit]);
   const userResetPasswordConfig = useMemo(() => getUserResetPasswordFormConfig(), []);
 
   // Filtered Users
@@ -121,7 +155,7 @@ function AdminUsersContent() {
           const isStudent = u.roles?.includes("student") || u.role === "student" || (!u.role && (!u.roles || u.roles.length === 0));
           if (!isStudent) return false;
         } else {
-          const hasRole = u.roles?.includes(roleFilter) || u.role === roleFilter;
+          const hasRole = (u.roles as string[])?.includes(roleFilter) || u.role === roleFilter;
           if (!hasRole) return false;
         }
       }
@@ -155,7 +189,7 @@ function AdminUsersContent() {
       const email = String(data.email || "").trim();
       const phone = data.phone ? String(data.phone).trim() : undefined;
       const password = String(data.password || "");
-      const role = (data.role || "student") as "student" | "talent" | "superadministrator";
+      const role = (data.role || "student") as "student" | "talent";
 
       await createAdminUser({
         name,
@@ -172,12 +206,34 @@ function AdminUsersContent() {
 
       setIsCreateModalOpen(false);
       fetchUsersList();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to create user", err);
       setFeedbackMsg({
         type: "error",
-        message: err.response?.data?.error?.message || "Gagal membuat pengguna baru",
+        message: getErrorMessage(err, "Gagal membuat pengguna baru"),
       });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditSubmit = async (data: Record<string, unknown>): Promise<void> => {
+    if (!selectedUserForEdit) return;
+    try {
+      setIsSubmitting(true);
+      const updatedUser = await updateAdminUser(selectedUserForEdit.id, {
+        name: String(data.name || "").trim(),
+        email: String(data.email || "").trim(),
+        phone: data.phone ? String(data.phone).trim() : undefined,
+        role: (data.role || "student") as "student" | "talent",
+      });
+      setUsers((previousUsers) => previousUsers.map((user) => user.id === updatedUser.id ? updatedUser : user));
+      setFeedbackMsg({ type: "success", message: `Data pengguna ${updatedUser.name} berhasil diperbarui.` });
+      setIsEditModalOpen(false);
+      setSelectedUserForEdit(null);
+    } catch (err: unknown) {
+      console.error("Failed to update user", err);
+      setFeedbackMsg({ type: "error", message: getErrorMessage(err, "Gagal memperbarui pengguna") });
     } finally {
       setIsSubmitting(false);
     }
@@ -209,11 +265,11 @@ function AdminUsersContent() {
       setUsers((prev) =>
         prev.map((u) => (u.id === user.id ? { ...u, status: nextStatus } : u))
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to update user status", err);
       setFeedbackMsg({
         type: "error",
-        message: "Gagal memperbarui status pengguna",
+        message: getErrorMessage(err, "Gagal memperbarui status pengguna"),
       });
     }
   };
@@ -233,11 +289,11 @@ function AdminUsersContent() {
       });
       setIsResetModalOpen(false);
       setSelectedUserForReset(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to reset password", err);
       setFeedbackMsg({
         type: "error",
-        message: err.response?.data?.error?.message || "Gagal mengatur ulang kata sandi",
+        message: getErrorMessage(err, "Gagal mengatur ulang kata sandi"),
       });
     } finally {
       setIsSubmitting(false);
@@ -532,6 +588,19 @@ function AdminUsersContent() {
                     {/* Actions */}
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* Edit User */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedUserForEdit(user);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="p-1.5 text-primary rounded-[8px] hover:bg-primary/10 transition-colors"
+                          title="Edit Data Pengguna"
+                        >
+                          <EditOutlinedIcon sx={{ fontSize: 16 }} />
+                        </button>
+
                         {/* Reset Password */}
                         <button
                           type="button"
@@ -574,6 +643,64 @@ function AdminUsersContent() {
           </div>
         )}
       </div>
+
+      {/* Modal: Edit Pengguna */}
+      {isEditModalOpen && selectedUserForEdit && userEditConfig && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            onClick={() => !isSubmitting && setIsEditModalOpen(false)}
+          />
+          <div className="relative bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-2xl border border-outline-variant/40 space-y-4 z-10 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-primary/10 text-primary rounded-[10px]">
+                  <EditOutlinedIcon sx={{ fontSize: 20 }} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-on-surface">Edit Pengguna</h3>
+                  <p className="text-[11px] text-on-surface-variant">Perbarui data dan peran pengguna.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1.5 text-on-surface-variant hover:text-on-surface rounded-[8px] transition-colors"
+              >
+                <CloseIcon sx={{ fontSize: 18 }} />
+              </button>
+            </div>
+            <DynamicForm
+              key={`edit-user-form-${selectedUserForEdit.id}`}
+              config={userEditConfig}
+              onSubmit={handleEditSubmit}
+              isLoading={isSubmitting}
+              hideSubmitButton={true}
+              extraActions={
+                <div className="pt-3 border-t border-outline-variant/30 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="px-4 py-2 text-xs font-bold text-on-surface bg-surface-container rounded-[10px] hover:bg-surface-variant transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-5 py-2 text-xs font-bold text-white bg-primary rounded-[10px] hover:bg-primary/90 transition-all shadow-xs flex items-center gap-1.5"
+                  >
+                    {isSubmitting && <CircularProgress size={14} color="inherit" />}
+                    <span>Simpan Perubahan</span>
+                  </button>
+                </div>
+              }
+            />
+          </div>
+        </div>
+      )}
 
       {/* Modal: Tambah Pengguna Baru dengan Dynamic Form */}
       {isCreateModalOpen && (

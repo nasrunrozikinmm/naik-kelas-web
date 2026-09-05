@@ -10,7 +10,6 @@ import {
   changePassword,
   getPayoutAccount,
   savePayoutAccount,
-  PayoutAccountData,
 } from "@/lib/api/settings";
 import { DynamicForm } from "@/components/dynamic-form";
 import {
@@ -28,9 +27,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import VideoCameraFrontOutlinedIcon from "@mui/icons-material/VideoCameraFrontOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import CircularProgress from "@mui/material/CircularProgress";
-import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 function TalentSettingsContent() {

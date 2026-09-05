@@ -60,7 +60,6 @@ export function getUserCreateFormConfig(): FormConfig {
         options: [
           { label: "Siswa (Student) - Pembeli Layanan", value: "student" },
           { label: "Mentor (Talent) - Penyedia Layanan", value: "talent" },
-          { label: "Superadministrator - Akses Penuh Sistem", value: "superadministrator" },
         ],
         validation: {
           required: true,
@@ -69,6 +68,25 @@ export function getUserCreateFormConfig(): FormConfig {
         gridProps: { xs: 12 },
       },
     ],
+  };
+}
+
+export function getUserEditFormConfig(defaults: {
+  name: string;
+  email: string;
+  phone?: string;
+  role: "student" | "talent";
+}): FormConfig {
+  const config = getUserCreateFormConfig();
+  return {
+    ...config,
+    submitLabel: "Simpan Perubahan",
+    fields: (config.fields ?? [])
+      .filter((field) => field.name !== "password")
+      .map((field) => ({
+        ...field,
+        defaultValue: defaults[field.name as keyof typeof defaults] ?? "",
+      })),
   };
 }
 

@@ -20,7 +20,8 @@ export const endpoints = {
     scheduleSlots: (id: string) => `/catalogs/${id}/schedule-slots`
   },
   media: {
-    upload: "/media/upload"
+    upload: "/media/upload",
+    delete: "/media"
   },
   profile: {
     me: "/me/profile",

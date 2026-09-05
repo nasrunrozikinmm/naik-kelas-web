@@ -7,6 +7,7 @@ import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { TableSkeleton } from "@/components/common/SkeletonLoader";
 import { EmptyState } from "@/components/common/EmptyState";
+import { FileUploader } from "@/components/common/FileUploader";
 import { useConfirm } from "@/hooks/useConfirm";
 import { formatDate } from "@/lib/utils/format";
 import { apiClient } from "@/lib/api/client";
@@ -631,72 +632,24 @@ function TalentApprovalContent() {
                         <span>Verifikasi Dokumen KYC (MinIO Object Storage)</span>
                       </p>
 
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         {/* KTP */}
-                        <div>
-                          <p className="text-[11px] font-bold text-on-surface mb-1">Kartu Tanda Penduduk (KTP):</p>
-                          {docs?.ktp_url ? (
-                            <a
-                              href={docs.ktp_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-between p-3 bg-surface-container rounded-[10px] border border-outline-variant/40 hover:border-primary transition-all text-xs"
-                            >
-                              <div className="flex items-center gap-2.5">
-                                <DescriptionOutlinedIcon sx={{ fontSize: 20 }} className="text-primary" />
-                                <div>
-                                  <span className="font-bold text-on-surface block">
-                                    {docs.ktp_name || "KTP_Identitas.pdf"}
-                                  </span>
-                                  <span className="text-[10px] text-emerald-600 font-semibold">
-                                    Tersimpan aman di MinIO
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 text-primary font-bold text-xs">
-                                <span>Buka Dokumen</span>
-                                <OpenInNewIcon sx={{ fontSize: 14 }} />
-                              </div>
-                            </a>
-                          ) : (
-                            <div className="p-3 bg-surface-container rounded-[10px] border border-outline-variant/30 text-xs text-on-surface-variant italic">
-                              Dokumen KTP belum diunggah oleh talent.
-                            </div>
-                          )}
-                        </div>
+                        <FileUploader
+                          label="Kartu Tanda Penduduk (KTP)"
+                          value={docs?.ktp_url || ""}
+                          onChange={() => undefined}
+                          variant="document"
+                          disabled
+                        />
 
                         {/* Ijazah */}
-                        <div>
-                          <p className="text-[11px] font-bold text-on-surface mb-1">Ijazah Terakhir / Sertifikat:</p>
-                          {docs?.ijazah_url ? (
-                            <a
-                              href={docs.ijazah_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-between p-3 bg-surface-container rounded-[10px] border border-outline-variant/40 hover:border-secondary transition-all text-xs"
-                            >
-                              <div className="flex items-center gap-2.5">
-                                <SchoolOutlinedIcon sx={{ fontSize: 20 }} className="text-secondary" />
-                                <div>
-                                  <span className="font-bold text-on-surface block">
-                                    {docs.ijazah_name || "Ijazah_Terakhir.pdf"}
-                                  </span>
-                                  <span className="text-[10px] text-emerald-600 font-semibold">
-                                    Tersimpan aman di MinIO
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 text-secondary font-bold text-xs">
-                                <span>Buka Dokumen</span>
-                                <OpenInNewIcon sx={{ fontSize: 14 }} />
-                              </div>
-                            </a>
-                          ) : (
-                            <div className="p-3 bg-surface-container rounded-[10px] border border-outline-variant/30 text-xs text-on-surface-variant italic">
-                              Dokumen Ijazah belum diunggah oleh talent.
-                            </div>
-                          )}
-                        </div>
+                        <FileUploader
+                          value={docs?.ijazah_url || ""}
+                          label="Ijazah Terakhir / Sertifikat"
+                          onChange={() => undefined}
+                          variant="document"
+                          disabled
+                        />
                       </div>
                     </div>
                   );

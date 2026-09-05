@@ -7,21 +7,19 @@ import { endpoints } from "@/lib/api/endpoints";
 import { getApiErrorMessage } from "@/lib/utils/api-error";
 import { formatCurrency } from "@/lib/utils/format";
 import { DynamicForm, FormConfig } from "@/components/dynamic-form";
+import { FileUploader } from "@/components/common";
 
 // MUI Icons & Components
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import BadgeIcon from "@mui/icons-material/Badge";
-import SchoolIcon from "@mui/icons-material/School";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import CancelIcon from "@mui/icons-material/Cancel";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CircularProgress from "@mui/material/CircularProgress";
 
 interface UploadedDoc {
   url: string;
+  key?: string;
   name: string;
   size?: number;
 }
@@ -42,8 +40,6 @@ export default function TalentProfilePage() {
   // Document states (managed for MinIO direct upload)
   const [ktpDoc, setKtpDoc] = useState<UploadedDoc | null>(null);
   const [ijazahDoc, setIjazahDoc] = useState<UploadedDoc | null>(null);
-  const [uploadingKtp, setUploadingKtp] = useState(false);
-  const [uploadingIjazah, setUploadingIjazah] = useState(false);
 
   // Status & loading states
   const [verificationStatus, setVerificationStatus] = useState<string>("not_required");
@@ -72,9 +68,6 @@ export default function TalentProfilePage() {
   // Skills state
   const [skills, setSkills] = useState<string[]>(["Bimbingan Beasiswa", "Persiapan UTBK"]);
   const [newSkill, setNewSkill] = useState("");
-
-  const ktpInputRef = useRef<HTMLInputElement>(null);
-  const ijazahInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch current talent profile from backend
   useEffect(() => {
@@ -113,10 +106,18 @@ export default function TalentProfilePage() {
             try {
               const docs = typeof p.documents === "string" ? JSON.parse(p.documents) : p.documents;
               if (docs.ktp_url) {
-                setKtpDoc({ url: docs.ktp_url, name: docs.ktp_name || "KTP_Identitas.pdf" });
+                setKtpDoc({
+                  url: docs.ktp_url,
+                  key: docs.ktp_key,
+                  name: docs.ktp_name || "KTP_Identitas.pdf"
+                });
               }
               if (docs.ijazah_url) {
-                setIjazahDoc({ url: docs.ijazah_url, name: docs.ijazah_name || "Ijazah_Terakhir.pdf" });
+                setIjazahDoc({
+                  url: docs.ijazah_url,
+                  key: docs.ijazah_key,
+                  name: docs.ijazah_name || "Ijazah_Terakhir.pdf"
+                });
               }
             } catch {
               // JSON parse fallback
@@ -142,49 +143,6 @@ export default function TalentProfilePage() {
       clearTimeout(timeoutTimer);
     };
   }, [authName]);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "ktp" | "ijazah") => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      setSubmitError("Ukuran file maksimal 10 MB");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      setSubmitError(null);
-      if (type === "ktp") setUploadingKtp(true);
-      else setUploadingIjazah(true);
-
-      const res = await apiClient.post(
-        `${endpoints.media.upload}?folder=kyc`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" }
-        }
-      );
-
-      const data = res.data?.data;
-      if (data?.url) {
-        const doc: UploadedDoc = {
-          url: data.url,
-          name: data.filename || file.name,
-          size: file.size
-        };
-        if (type === "ktp") setKtpDoc(doc);
-        else setIjazahDoc(doc);
-      }
-    } catch (err: unknown) {
-      setSubmitError(getApiErrorMessage(err, "Gagal mengunggah berkas. Pastikan format JPG, PNG, atau PDF."));
-    } finally {
-      if (type === "ktp") setUploadingKtp(false);
-      else setUploadingIjazah(false);
-    }
-  };
 
   const handleAddSkill = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -222,8 +180,10 @@ export default function TalentProfilePage() {
         starting_price: Number(formData.startingPrice) || 50000,
         documents: JSON.stringify({
           ktp_url: ktpDoc.url,
+          ktp_key: ktpDoc.key,
           ktp_name: ktpDoc.name,
           ijazah_url: ijazahDoc.url,
+          ijazah_key: ijazahDoc.key,
           ijazah_name: ijazahDoc.name
         })
       };
@@ -367,153 +327,26 @@ export default function TalentProfilePage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* KTP Document Card */}
-                <div className="p-4 rounded-xl border border-outline-variant/40 bg-surface-container-low space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-on-surface flex items-center gap-1.5">
-                      <BadgeIcon sx={{ fontSize: 18 }} className="text-primary" />
-                      <span>Kartu Tanda Penduduk (KTP)</span>
-                    </span>
-                    {ktpDoc ? (
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                        Terunggah
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
-                        Wajib
-                      </span>
-                    )}
-                  </div>
-
-                  {ktpDoc ? (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-on-surface truncate" title={ktpDoc.name}>
-                        📄 {ktpDoc.name}
-                      </p>
-                      <div className="flex items-center gap-2 pt-1">
-                        <a
-                          href={ktpDoc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-                        >
-                          <span>Lihat Berkas</span>
-                          <OpenInNewIcon sx={{ fontSize: 14 }} />
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => setKtpDoc(null)}
-                          className="text-xs font-bold text-error hover:underline flex items-center gap-1 ml-auto"
-                        >
-                          <DeleteOutlineIcon sx={{ fontSize: 14 }} />
-                          <span>Ganti</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <input
-                        ref={ktpInputRef}
-                        type="file"
-                        accept="image/*,application/pdf"
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(e, "ktp")}
-                      />
-                      <button
-                        type="button"
-                        disabled={uploadingKtp}
-                        onClick={() => ktpInputRef.current?.click()}
-                        className="w-full py-2.5 px-3 rounded-xl border border-dashed border-primary text-primary hover:bg-primary/5 font-bold text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                      >
-                        {uploadingKtp ? (
-                          <>
-                            <CircularProgress size={16} color="inherit" />
-                            <span>Mengunggah ke MinIO...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CloudUploadIcon sx={{ fontSize: 18 }} />
-                            <span>Pilih Berkas KTP</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Ijazah Document Card */}
-                <div className="p-4 rounded-xl border border-outline-variant/40 bg-surface-container-low space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-on-surface flex items-center gap-1.5">
-                      <SchoolIcon sx={{ fontSize: 18 }} className="text-secondary" />
-                      <span>Ijazah / Sertifikat</span>
-                    </span>
-                    {ijazahDoc ? (
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                        Terunggah
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
-                        Wajib
-                      </span>
-                    )}
-                  </div>
-
-                  {ijazahDoc ? (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-on-surface truncate" title={ijazahDoc.name}>
-                        🎓 {ijazahDoc.name}
-                      </p>
-                      <div className="flex items-center gap-2 pt-1">
-                        <a
-                          href={ijazahDoc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-bold text-secondary hover:underline flex items-center gap-1"
-                        >
-                          <span>Lihat Berkas</span>
-                          <OpenInNewIcon sx={{ fontSize: 14 }} />
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => setIjazahDoc(null)}
-                          className="text-xs font-bold text-error hover:underline flex items-center gap-1 ml-auto"
-                        >
-                          <DeleteOutlineIcon sx={{ fontSize: 14 }} />
-                          <span>Ganti</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <input
-                        ref={ijazahInputRef}
-                        type="file"
-                        accept="image/*,application/pdf"
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(e, "ijazah")}
-                      />
-                      <button
-                        type="button"
-                        disabled={uploadingIjazah}
-                        onClick={() => ijazahInputRef.current?.click()}
-                        className="w-full py-2.5 px-3 rounded-xl border border-dashed border-secondary text-secondary hover:bg-secondary/5 font-bold text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                      >
-                        {uploadingIjazah ? (
-                          <>
-                            <CircularProgress size={16} color="inherit" />
-                            <span>Mengunggah ke MinIO...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CloudUploadIcon sx={{ fontSize: 18 }} />
-                            <span>Pilih Berkas Ijazah</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <FileUploader
+                  label="Kartu Tanda Penduduk (KTP)"
+                  value={ktpDoc?.url ?? ""}
+                  objectKey={ktpDoc?.key}
+                  onChange={(url, key) => setKtpDoc({ url, key, name: "KTP_Identitas" })}
+                  onRemove={() => setKtpDoc(null)}
+                  variant="document"
+                  folder="kyc"
+                  disabled={isPending || isVerified}
+                />
+                <FileUploader
+                  label="Ijazah / Sertifikat Kualifikasi"
+                  value={ijazahDoc?.url ?? ""}
+                  objectKey={ijazahDoc?.key}
+                  onChange={(url, key) => setIjazahDoc({ url, key, name: "Ijazah_Terakhir" })}
+                  onRemove={() => setIjazahDoc(null)}
+                  variant="document"
+                  folder="kyc"
+                  disabled={isPending || isVerified}
+                />
               </div>
             </div>
           )
@@ -528,8 +361,6 @@ export default function TalentProfilePage() {
     newSkill,
     ktpDoc,
     ijazahDoc,
-    uploadingKtp,
-    uploadingIjazah,
     handleAddSkill,
     handleRemoveSkill
   ]);
