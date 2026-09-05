@@ -20,14 +20,14 @@ import {
 import { useConfirm } from "@/hooks/useConfirm";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
-import { getMyCatalogs, deleteCatalog } from "@/lib/api/catalog";
+import { getMyCatalogs, getMyCatalogStats, deleteCatalog } from "@/lib/api/catalog";
 import {
   CATALOG_STATUS_TABS,
   getCatalogTypeLabel,
   getCatalogTypeIcon,
   getCatalogStatusLabel,
 } from "@/lib/utils/catalog";
-import type { Catalog } from "@/types/domain";
+import type { Catalog, CatalogStats } from "@/types/domain";
 
 // MUI Icons
 import AddIcon from "@mui/icons-material/Add";
@@ -52,6 +52,12 @@ function TalentCatalogsContent() {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [stats, setStats] = useState<CatalogStats>({
+    total: 0,
+    active: 0,
+    pending: 0,
+    rejected_or_archived: 0,
+  });
   const debouncedQuery = useDebounce(searchQuery, 350);
 
   const statusParam = searchParams.get("status");
@@ -59,16 +65,28 @@ function TalentCatalogsContent() {
     ? statusParam!
     : "all";
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const s = await getMyCatalogStats();
+      if (s) setStats(s);
+    } catch (error) {
+      console.error("Failed to fetch my catalog stats", error);
+    }
+  }, []);
+
   const fetchCatalogs = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getMyCatalogs({
-        status: statusFilter === "all" ? undefined : statusFilter,
-        type: typeFilter === "all" ? undefined : typeFilter,
-        q: debouncedQuery.trim() || undefined,
-        page,
-        per_page: perPage,
-      });
+      const [res] = await Promise.all([
+        getMyCatalogs({
+          status: statusFilter === "all" ? undefined : statusFilter,
+          type: typeFilter === "all" ? undefined : typeFilter,
+          q: debouncedQuery.trim() || undefined,
+          page,
+          per_page: perPage,
+        }),
+        fetchStats(),
+      ]);
       setCatalogs(res.items || []);
       setTotal(res.total || 0);
     } catch (error) {
@@ -76,7 +94,7 @@ function TalentCatalogsContent() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, typeFilter, debouncedQuery, page, perPage]);
+  }, [statusFilter, typeFilter, debouncedQuery, page, perPage, fetchStats]);
 
   useEffect(() => {
     fetchCatalogs();
@@ -166,33 +184,34 @@ function TalentCatalogsContent() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard
           title="Total Layanan"
-          value={totalCount}
+          value={stats.total}
           subtitle="Katalog terdaftar"
           color="primary"
           icon={<LayersOutlinedIcon sx={{ fontSize: 22 }} />}
         />
         <StatCard
           title="Layanan Aktif"
-          value={activeCount}
+          value={stats.active}
           subtitle="Tampil di marketplace"
           color="success"
           icon={<CheckCircleOutlineOutlinedIcon sx={{ fontSize: 22 }} />}
         />
         <StatCard
           title="Menunggu Review"
-          value={pendingCount}
+          value={stats.pending}
           subtitle="Sedang ditinjau admin"
           color="warning"
           icon={<HourglassEmptyOutlinedIcon sx={{ fontSize: 22 }} />}
         />
         <StatCard
           title="Draft / Ditolak"
-          value={draftCount}
+          value={stats.rejected_or_archived}
           subtitle="Belum dipublikasikan"
           color="secondary"
           icon={<EditNoteOutlinedIcon sx={{ fontSize: 22 }} />}
         />
       </div>
+
 
       {/* Filters & Content Table */}
       <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-xs overflow-hidden">

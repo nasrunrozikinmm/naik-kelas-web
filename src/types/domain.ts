@@ -218,3 +218,53 @@ export interface ApiErrorResponse {
   };
 }
 
+export interface CatalogStats {
+  total: number;
+  active: number;
+  pending: number;
+  rejected_or_archived: number;
+}
+
+export interface TalentApprovalStats {
+  total: number;
+  pending: number;
+  verified: number;
+  rejected: number;
+}
+
+export interface AdminUserStats {
+  total: number;
+  active: number;
+  suspended: number;
+  students: number;
+  talents: number;
+  admins: number;
+}
+
+export interface CategoryStats {
+  total: number;
+  parents: number;
+  subcategories: number;
+  active: number;
+  inactive: number;
+}
+
+export interface TransactionStats {
+  total: number;
+  paid: number;
+  pending: number;
+  cancelled: number;
+  total_gmv: number;
+  total_fee: number;
+}
+
+export interface TalentOrderStats {
+  total: number;
+  active: number;
+  completed: number;
+  pending: number;
+  cancelled: number;
+  total_net_revenue: number;
+}
+
+

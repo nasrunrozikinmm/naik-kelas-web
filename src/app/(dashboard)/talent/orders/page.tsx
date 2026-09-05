@@ -4,7 +4,8 @@ import React, { useEffect, useState, useCallback, useMemo, Suspense } from "reac
 import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader, StatCard, StatusBadge, EmptyState, TableSkeleton, Pagination } from "@/components/common";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
-import { getTalentOrders, OrderListItem } from "@/lib/api/order";
+import { getTalentOrders, getTalentOrderStats, OrderListItem } from "@/lib/api/order";
+import type { TalentOrderStats } from "@/types/domain";
 
 // MUI Icons
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
@@ -30,21 +31,39 @@ function TalentOrdersContent() {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [stats, setStats] = useState<TalentOrderStats>({
+    total: 0,
+    active: 0,
+    completed: 0,
+    pending: 0,
+    cancelled: 0,
+    total_net_revenue: 0,
+  });
   const [selectedDrawer, setSelectedDrawer] = useState<OrderListItem | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const statusParam = searchParams.get("status");
-  const statusFilter = ["all", "active", "pending", "completed", "cancelled"].includes(statusParam || "")
-    ? statusParam!
-    : "all";
+  const statusFilter = statusParam || "all";
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const s = await getTalentOrderStats();
+      if (s) setStats(s);
+    } catch (error) {
+      console.error("Failed to fetch talent order stats", error);
+    }
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getTalentOrders(
-        page,
-        perPage,
-        statusFilter === "all" ? undefined : statusFilter
-      );
+      const [res] = await Promise.all([
+        getTalentOrders(
+          page,
+          perPage,
+          statusFilter === "all" ? undefined : statusFilter
+        ),
+        fetchStats(),
+      ]);
       setOrders(res?.items || (Array.isArray(res) ? res : []));
       setTotal(res?.total || 0);
     } catch (error) {
@@ -52,7 +71,7 @@ function TalentOrdersContent() {
     } finally {
       setLoading(false);
     }
-  }, [page, perPage, statusFilter]);
+  }, [page, perPage, statusFilter, fetchStats]);
 
   useEffect(() => {
     fetchOrders();
@@ -76,20 +95,7 @@ function TalentOrdersContent() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Dynamic Statistics
-  const stats = useMemo(() => {
-    const total = orders.length;
-    const active = orders.filter((o) => ["paid", "active"].includes(o.status)).length;
-    const completed = orders.filter((o) => o.status === "completed").length;
-    const pending = orders.filter((o) => o.status === "pending_payment").length;
-    const cancelled = orders.filter((o) => o.status === "cancelled").length;
 
-    const totalNetRevenue = orders
-      .filter((o) => ["paid", "active", "completed"].includes(o.status))
-      .reduce((acc, curr) => acc + ((curr.amount || 0) - (curr.platform_fee || 0)), 0);
-
-    return { total, active, completed, pending, cancelled, totalNetRevenue };
-  }, [orders]);
 
   // Filtered Orders
   const filteredOrders = useMemo(() => {
@@ -186,7 +192,7 @@ function TalentOrdersContent() {
         />
         <StatCard
           title="Pendapatan Bersih"
-          value={formatCurrency(stats.totalNetRevenue)}
+          value={formatCurrency(stats.total_net_revenue)}
           icon={<AccountBalanceWalletOutlinedIcon sx={{ fontSize: 24 }} />}
           color="tertiary"
           subtitle="Setelah potongan platform 10%"

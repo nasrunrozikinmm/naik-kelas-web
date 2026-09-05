@@ -9,7 +9,8 @@ import { TableSkeleton } from "@/components/common/SkeletonLoader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Pagination } from "@/components/common";
 import { formatDate } from "@/lib/utils/format";
-import { getAdminTransactions, OrderListItem } from "@/lib/api/order";
+import { getAdminTransactions, getAdminTransactionStats, OrderListItem } from "@/lib/api/order";
+import type { TransactionStats } from "@/types/domain";
 
 // MUI Icons
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
@@ -37,6 +38,14 @@ function AdminTransactionsContent() {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [stats, setStats] = useState<TransactionStats>({
+    total: 0,
+    paid: 0,
+    pending: 0,
+    cancelled: 0,
+    total_gmv: 0,
+    total_fee: 0,
+  });
   const [selectedDrawer, setSelectedDrawer] = useState<OrderListItem | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const statusParam = searchParams.get("status");
@@ -53,14 +62,26 @@ function AdminTransactionsContent() {
     router.replace(query ? `?${query}` : "?", { scroll: false });
   };
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const s = await getAdminTransactionStats();
+      if (s) setStats(s);
+    } catch (error) {
+      console.error("Failed to fetch transaction stats", error);
+    }
+  }, []);
+
   const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getAdminTransactions(
-        page,
-        perPage,
-        statusTab === "all" ? undefined : statusTab
-      );
+      const [res] = await Promise.all([
+        getAdminTransactions(
+          page,
+          perPage,
+          statusTab === "all" ? undefined : statusTab
+        ),
+        fetchStats(),
+      ]);
       setTransactions(res?.items || (Array.isArray(res) ? res : []));
       setTotal(res?.total || 0);
     } catch (error) {
@@ -68,7 +89,7 @@ function AdminTransactionsContent() {
     } finally {
       setLoading(false);
     }
-  }, [page, perPage, statusTab]);
+  }, [page, perPage, statusTab, fetchStats]);
 
   useEffect(() => {
     fetchTransactions();
@@ -87,23 +108,7 @@ function AdminTransactionsContent() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Dynamic Statistics
-  const stats = useMemo(() => {
-    const total = transactions.length;
-    const paid = transactions.filter((t) => ["paid", "active", "completed"].includes(t.status)).length;
-    const pending = transactions.filter((t) => t.status === "pending_payment").length;
-    const cancelled = transactions.filter((t) => t.status === "cancelled").length;
 
-    const totalGMV = transactions
-      .filter((t) => ["paid", "active", "completed"].includes(t.status))
-      .reduce((acc, curr) => acc + (curr.amount || 0), 0);
-
-    const totalFee = transactions
-      .filter((t) => ["paid", "active", "completed"].includes(t.status))
-      .reduce((acc, curr) => acc + (curr.platform_fee || 0), 0);
-
-    return { total, paid, pending, cancelled, totalGMV, totalFee };
-  }, [transactions]);
 
   // Filtered Transactions
   const filteredTransactions = useMemo(() => {
@@ -185,7 +190,7 @@ function AdminTransactionsContent() {
           value={stats.total}
           icon={<ReceiptLongOutlinedIcon sx={{ fontSize: 24 }} />}
           color="primary"
-          subtitle={`GMV: ${formatRupiah(stats.totalGMV)}`}
+          subtitle={`GMV: ${formatRupiah(stats.total_gmv)}`}
         />
         <StatCard
           title="Transaksi Berhasil"
@@ -203,7 +208,7 @@ function AdminTransactionsContent() {
         />
         <StatCard
           title="Pendapatan Platform"
-          value={formatRupiah(stats.totalFee)}
+          value={formatRupiah(stats.total_fee)}
           icon={<AccountBalanceWalletOutlinedIcon sx={{ fontSize: 24 }} />}
           color="tertiary"
           subtitle="Total komisi platform Naik Kelas"

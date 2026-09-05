@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { Category, PaginatedResult } from '@/types/domain';
+import type { Category, PaginatedResult, CategoryStats } from '@/types/domain';
 
 export interface CategoryCreateInput {
   name: string;
@@ -63,3 +63,9 @@ export async function updateCategory(id: string, data: CategoryUpdateInput): Pro
 export async function deleteCategory(id: string): Promise<void> {
   await apiClient.delete(`/categories/${id}`);
 }
+
+export async function getCategoryStats(): Promise<CategoryStats> {
+  const res = await apiClient.get('/categories/stats');
+  return res.data?.data;
+}
+

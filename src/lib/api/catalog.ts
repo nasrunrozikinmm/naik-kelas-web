@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { Catalog, ScheduleSlot, PaginatedResult } from '@/types/domain';
+import type { Catalog, ScheduleSlot, PaginatedResult, CatalogStats } from '@/types/domain';
 
 export interface CatalogQueryParams {
   status?: string;
@@ -134,3 +134,14 @@ export async function moderateCatalogStatus(
   const res = await apiClient.put(`/catalogs/${id}`, { status: normalizedStatus });
   return res.data?.data;
 }
+
+export async function getAdminCatalogStats(): Promise<CatalogStats> {
+  const res = await apiClient.get('/admin/catalogs/stats');
+  return res.data?.data;
+}
+
+export async function getMyCatalogStats(): Promise<CatalogStats> {
+  const res = await apiClient.get('/catalogs/me/stats');
+  return res.data?.data;
+}
+

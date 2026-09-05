@@ -13,6 +13,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate, formatCurrency } from "@/lib/utils/format";
 import {
   getAdminCatalogs,
+  getAdminCatalogStats,
   moderateCatalogStatus,
   deleteCatalog,
 } from "@/lib/api/catalog";
@@ -23,7 +24,7 @@ import {
   getCatalogTypeIcon,
   getCatalogStatusLabel,
 } from "@/lib/utils/catalog";
-import type { Catalog, Category, ScheduleSlot } from "@/types/domain";
+import type { Catalog, Category, ScheduleSlot, CatalogStats } from "@/types/domain";
 
 // MUI Icons
 import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
@@ -54,6 +55,12 @@ function AdminCatalogsContent() {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [stats, setStats] = useState<CatalogStats>({
+    total: 0,
+    active: 0,
+    pending: 0,
+    rejected_or_archived: 0,
+  });
   const debouncedQuery = useDebounce(searchQuery, 350);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{
@@ -76,6 +83,15 @@ function AdminCatalogsContent() {
     router.replace(query ? `?${query}` : "?", { scroll: false });
   };
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const s = await getAdminCatalogStats();
+      if (s) setStats(s);
+    } catch (err) {
+      console.error("Failed to load admin catalog stats", err);
+    }
+  }, []);
+
   // Load catalogs and categories
   const fetchData = useCallback(async () => {
     try {
@@ -89,6 +105,7 @@ function AdminCatalogsContent() {
           per_page: perPage,
         }),
         apiClient.get(endpoints.categories.list),
+        fetchStats(),
       ]);
 
       setCatalogs(catRes.items || []);
@@ -105,27 +122,13 @@ function AdminCatalogsContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, categoryFilter, debouncedQuery, page, perPage]);
+  }, [statusFilter, categoryFilter, debouncedQuery, page, perPage, fetchStats]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Statistics calculation
-  const stats = useMemo(() => {
-    const totalCount = total;
-    const pending = catalogs.filter(
-      (c) => c.status === "pending_review" || c.status === "pending"
-    ).length;
-    const active = catalogs.filter(
-      (c) => c.status === "active" || c.status === "published"
-    ).length;
-    const rejectedOrArchived = catalogs.filter(
-      (c) => c.status === "rejected" || c.status === "archived"
-    ).length;
 
-    return { total: totalCount, pending, active, rejectedOrArchived };
-  }, [catalogs, total]);
 
   // Catalogs to display (server filtered)
   const filteredCatalogs = catalogs;
@@ -172,6 +175,7 @@ function AdminCatalogsContent() {
     try {
       setIsActionLoading(true);
       await moderateCatalogStatus(id, newStatus);
+      fetchStats();
       setFeedbackMsg({
         type: "success",
         message: `Status layanan berhasil diperbarui menjadi ${getCatalogStatusLabel(newStatus)}`,
@@ -210,6 +214,7 @@ function AdminCatalogsContent() {
     try {
       setIsActionLoading(true);
       await deleteCatalog(id);
+      fetchStats();
       setFeedbackMsg({
         type: "success",
         message: "Layanan berhasil dihapus dari sistem",
@@ -294,7 +299,7 @@ function AdminCatalogsContent() {
         />
         <StatCard
           title="Ditolak / Arsip"
-          value={stats.rejectedOrArchived}
+          value={stats.rejected_or_archived}
           icon={<ArchiveOutlinedIcon sx={{ fontSize: 24 }} />}
           color="secondary"
           subtitle="Tidak aktif sementara"

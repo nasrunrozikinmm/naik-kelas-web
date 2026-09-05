@@ -17,11 +17,12 @@ import {
   getCategories,
   getPaginatedCategories,
   getAllCategories,
+  getCategoryStats,
   createCategory,
   updateCategory,
   deleteCategory,
 } from "@/lib/api/category";
-import type { Category } from "@/types/domain";
+import type { Category, CategoryStats } from "@/types/domain";
 
 // MUI Icons
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
@@ -48,6 +49,13 @@ function AdminCategoriesContent() {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [stats, setStats] = useState<CategoryStats>({
+    total: 0,
+    parents: 0,
+    subcategories: 0,
+    active: 0,
+    inactive: 0,
+  });
   const debouncedQuery = useDebounce(searchQuery, 350);
   const filterParam = searchParams.get("filter");
   const filterTab = ["all", "parents", "subcategories", "active", "inactive"].includes(filterParam || "")
@@ -76,6 +84,15 @@ function AdminCategoriesContent() {
     router.replace(query ? `?${query}` : "?", { scroll: false });
   };
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const s = await getCategoryStats();
+      if (s) setStats(s);
+    } catch (err) {
+      console.error("Failed to load category stats", err);
+    }
+  }, []);
+
   const fetchCategoriesList = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -87,6 +104,7 @@ function AdminCategoriesContent() {
           status: filterTab === "active" ? "active" : filterTab === "inactive" ? "inactive" : undefined,
         }),
         getAllCategories(),
+        fetchStats(),
       ]);
       setCategories(paginatedData.items || []);
       setTotal(paginatedData.total || 0);
@@ -100,7 +118,7 @@ function AdminCategoriesContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [filterTab, debouncedQuery, page, perPage]);
+  }, [filterTab, debouncedQuery, page, perPage, fetchStats]);
 
   useEffect(() => {
     fetchCategoriesList();
@@ -121,14 +139,7 @@ function AdminCategoriesContent() {
     return map;
   }, [allCategories]);
 
-  // Statistics
-  const stats = useMemo(() => {
-    const totalCount = allCategories.length || total;
-    const parents = allCategories.filter((c) => !c.parent_id).length;
-    const subcategories = allCategories.filter((c) => !!c.parent_id).length;
-    const active = allCategories.filter((c) => c.status === "active" || !c.status).length;
-    return { total: totalCount, parents, subcategories, active };
-  }, [allCategories, total]);
+
 
   // Dynamic Form Configuration
   const categoryFormConfig = useMemo(() => {
@@ -197,11 +208,15 @@ function AdminCategoriesContent() {
 
       setIsModalOpen(false);
       fetchCategoriesList();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to save category", err);
+      const msg =
+        typeof err === "object" && err !== null && "response" in err
+          ? ((err as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message)
+          : undefined;
       setFeedbackMsg({
         type: "error",
-        message: err.response?.data?.error?.message || "Gagal menyimpan data kategori",
+        message: msg || "Gagal menyimpan data kategori",
       });
     } finally {
       setIsSubmitting(false);
@@ -226,11 +241,15 @@ function AdminCategoriesContent() {
         message: `Kategori "${category.name}" berhasil dihapus.`,
       });
       fetchCategoriesList();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to delete category", err);
+      const msg =
+        typeof err === "object" && err !== null && "response" in err
+          ? ((err as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message)
+          : undefined;
       setFeedbackMsg({
         type: "error",
-        message: err.response?.data?.error?.message || "Gagal menghapus kategori. Kategori mungkin sedang digunakan.",
+        message: msg || "Gagal menghapus kategori. Kategori mungkin sedang digunakan.",
       });
     }
   };

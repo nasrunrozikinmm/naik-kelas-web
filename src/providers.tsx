@@ -43,7 +43,7 @@ function AuthSessionInitializer({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <NextThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <NextThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <AppRouterCacheProvider options={{ enableCssLayer: true }}>
         <ReduxProvider store={store}>
           <AuthSessionInitializer>

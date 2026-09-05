@@ -15,12 +15,14 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/lib/utils/format";
 import {
   getAdminUsers,
+  getAdminUserStats,
   createAdminUser,
   updateAdminUser,
   updateAdminUserStatus,
   resetAdminUserPassword,
   type AdminUserListItem,
 } from "@/lib/api/adminUser";
+import type { AdminUserStats } from "@/types/domain";
 
 // MUI Icons
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
@@ -69,6 +71,14 @@ function AdminUsersContent() {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [stats, setStats] = useState<AdminUserStats>({
+    total: 0,
+    active: 0,
+    suspended: 0,
+    students: 0,
+    talents: 0,
+    admins: 0,
+  });
   const debouncedQuery = useDebounce(searchQuery, 350);
 
   const roleParam = searchParams.get("role");
@@ -108,16 +118,28 @@ function AdminUsersContent() {
 
   const { confirm } = useConfirm();
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const s = await getAdminUserStats();
+      if (s) setStats(s);
+    } catch (error) {
+      console.error("Failed to fetch admin user stats", error);
+    }
+  }, []);
+
   const fetchUsersList = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await getAdminUsers({
-        role: roleFilter === "all" ? undefined : roleFilter,
-        status: statusFilter === "all" ? undefined : statusFilter,
-        q: debouncedQuery.trim() || undefined,
-        page,
-        per_page: perPage,
-      });
+      const [res] = await Promise.all([
+        getAdminUsers({
+          role: roleFilter === "all" ? undefined : roleFilter,
+          status: statusFilter === "all" ? undefined : statusFilter,
+          q: debouncedQuery.trim() || undefined,
+          page,
+          per_page: perPage,
+        }),
+        fetchStats(),
+      ]);
       setUsers(res.items || []);
       setTotal(res.total || 0);
     } catch (error) {
@@ -129,22 +151,12 @@ function AdminUsersContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [roleFilter, statusFilter, debouncedQuery, page, perPage]);
+  }, [roleFilter, statusFilter, debouncedQuery, page, perPage, fetchStats]);
 
   useEffect(() => {
     fetchUsersList();
   }, [fetchUsersList]);
 
-  // Dynamic Statistics
-  const stats = useMemo(() => {
-    const totalCount = total;
-    const students = users.filter((u) => u.roles?.includes("student") || u.role === "student" || (!u.role && (!u.roles || u.roles.length === 0))).length;
-    const talents = users.filter((u) => u.roles?.includes("talent") || u.role === "talent").length;
-    const admins = users.filter((u) => u.roles?.includes("superadministrator") || u.role === "superadministrator").length;
-    const suspended = users.filter((u) => u.status === "suspended").length;
-
-    return { total: totalCount, students, talents, admins, suspended };
-  }, [users, total]);
 
   // Dynamic Form Configurations
   const userCreateConfig = useMemo(() => getUserCreateFormConfig(), []);
@@ -209,6 +221,7 @@ function AdminUsersContent() {
         role: (data.role || "student") as "student" | "talent",
       });
       setUsers((previousUsers) => previousUsers.map((user) => user.id === updatedUser.id ? updatedUser : user));
+      fetchStats();
       setFeedbackMsg({ type: "success", message: `Data pengguna ${updatedUser.name} berhasil diperbarui.` });
       setIsEditModalOpen(false);
       setSelectedUserForEdit(null);
@@ -238,6 +251,7 @@ function AdminUsersContent() {
 
     try {
       await updateAdminUserStatus(user.id, nextStatus);
+      fetchStats();
       setFeedbackMsg({
         type: "success",
         message: `Status pengguna ${user.name} berhasil diubah menjadi ${nextStatus === "active" ? "Aktif" : "Ditangguhkan"}`,

@@ -1,4 +1,5 @@
 import apiClient from './client';
+import type { TransactionStats, TalentOrderStats } from '@/types/domain';
 
 export interface CheckoutReq {
   cart_item_ids: string[];
@@ -88,3 +89,14 @@ export async function getAdminTransactionDetail(id: string): Promise<OrderListIt
   const res = await apiClient.get(`/admin/transactions/${id}`);
   return res.data.data;
 }
+
+export async function getAdminTransactionStats(): Promise<TransactionStats> {
+  const res = await apiClient.get('/admin/transactions/stats');
+  return res.data.data;
+}
+
+export async function getTalentOrderStats(): Promise<TalentOrderStats> {
+  const res = await apiClient.get('/me/talent/orders/stats');
+  return res.data.data;
+}
+

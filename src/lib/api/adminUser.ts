@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { UserListItem, UserRole, UserStatus, PaginatedResult, TalentApprovalItem } from '@/types/domain';
+import type { UserListItem, UserRole, UserStatus, PaginatedResult, TalentApprovalItem, AdminUserStats, TalentApprovalStats } from '@/types/domain';
 
 export interface AdminUserListItem extends UserListItem {
   phone?: string;
@@ -79,3 +79,14 @@ export async function updateAdminUserStatus(
 export async function resetAdminUserPassword(id: string, password: string): Promise<void> {
   await apiClient.post(`/admin/users/${id}/reset-password`, { password });
 }
+
+export async function getAdminUserStats(): Promise<AdminUserStats> {
+  const res = await apiClient.get('/admin/users/stats');
+  return res.data?.data;
+}
+
+export async function getTalentApprovalStats(): Promise<TalentApprovalStats> {
+  const res = await apiClient.get('/admin/talent-approvals/stats');
+  return res.data?.data;
+}
+

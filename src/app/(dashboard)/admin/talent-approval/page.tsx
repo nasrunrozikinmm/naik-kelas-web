@@ -14,8 +14,8 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/lib/utils/format";
 import { apiClient } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { getTalentApprovals } from "@/lib/api/adminUser";
-import type { TalentApprovalItem, TalentKYCDocuments } from "@/types/domain";
+import { getTalentApprovals, getTalentApprovalStats } from "@/lib/api/adminUser";
+import type { TalentApprovalItem, TalentKYCDocuments, TalentApprovalStats } from "@/types/domain";
 
 // MUI Icons
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
@@ -44,6 +44,12 @@ function TalentApprovalContent() {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [stats, setStats] = useState<TalentApprovalStats>({
+    total: 0,
+    pending: 0,
+    verified: 0,
+    rejected: 0,
+  });
   const debouncedQuery = useDebounce(searchQuery, 350);
   const [showRejection, setShowRejection] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -68,16 +74,28 @@ function TalentApprovalContent() {
     router.replace(query ? `?${query}` : "?", { scroll: false });
   };
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const s = await getTalentApprovalStats();
+      if (s) setStats(s);
+    } catch (error) {
+      console.error("Failed to fetch talent approval stats", error);
+    }
+  }, []);
+
   // Fetch talent approval applications
   const fetchRequests = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await getTalentApprovals({
-        status: statusFilter === "all" ? undefined : statusFilter,
-        q: debouncedQuery.trim() || undefined,
-        page,
-        per_page: perPage,
-      });
+      const [res] = await Promise.all([
+        getTalentApprovals({
+          status: statusFilter === "all" ? undefined : statusFilter,
+          q: debouncedQuery.trim() || undefined,
+          page,
+          per_page: perPage,
+        }),
+        fetchStats(),
+      ]);
       setRequests(res.items || []);
       setTotal(res.total || 0);
     } catch (error) {
@@ -89,7 +107,7 @@ function TalentApprovalContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, debouncedQuery, page, perPage]);
+  }, [statusFilter, debouncedQuery, page, perPage, fetchStats]);
 
   useEffect(() => {
     fetchRequests();
@@ -99,21 +117,7 @@ function TalentApprovalContent() {
     setPage(1);
   }, [debouncedQuery]);
 
-  // Dynamic statistics
-  const stats = useMemo(() => {
-    const totalCount = total;
-    const pending = requests.filter(
-      (r) => r.verification_status === "pending" || !r.verification_status
-    ).length;
-    const verified = requests.filter(
-      (r) => r.verification_status === "verified" || r.verification_status === "approved"
-    ).length;
-    const rejected = requests.filter(
-      (r) => r.verification_status === "rejected"
-    ).length;
 
-    return { total: totalCount, pending, verified, rejected };
-  }, [requests, total]);
 
   // Unique expertise list for dropdown filter
   const expertiseList = useMemo(() => {
@@ -156,6 +160,7 @@ function TalentApprovalContent() {
     try {
       setIsActionLoading(true);
       await apiClient.post(endpoints.admin.approveTalent(talent.id));
+      fetchStats();
       setFeedbackMsg({
         type: "success",
         message: `Akun talent ${talent.display_name} berhasil diverifikasi!`,
@@ -187,6 +192,7 @@ function TalentApprovalContent() {
       await apiClient.post(endpoints.admin.rejectTalent(talent.id), {
         reason: rejectReason || "Dokumen atau kualifikasi belum memenuhi standar Naik Kelas.",
       });
+      fetchStats();
 
       setFeedbackMsg({
         type: "success",
