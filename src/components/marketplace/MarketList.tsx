@@ -5,19 +5,25 @@ import { Button } from "@mui/material";
 import type { CatalogCardModel, Category } from "@/types/domain";
 import { CatalogCard } from "@/components/marketplace/CatalogCard";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Pagination } from "@/components/common/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import TuneIcon from "@mui/icons-material/Tune";
 
-interface MarketListProps {
+export interface MarketListProps {
   catalogs: CatalogCardModel[];
   categories?: Category[];
   selectedCategory?: string | null;
   onSelectCategory?: (categoryId: string | null) => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
+  page?: number;
+  perPage?: number;
+  total?: number;
+  onPageChange?: (page: number) => void;
+  onPerPageChange?: (perPage: number) => void;
 }
 
 export function MarketList({
@@ -26,7 +32,12 @@ export function MarketList({
   selectedCategory: controlledCategory,
   onSelectCategory,
   searchQuery: controlledQuery,
-  onSearchChange
+  onSearchChange,
+  page,
+  perPage,
+  total,
+  onPageChange,
+  onPerPageChange,
 }: MarketListProps) {
   const [internalQuery, setInternalQuery] = useState("");
   const [internalCategory, setInternalCategory] = useState<string | null>(null);
@@ -85,6 +96,10 @@ export function MarketList({
     return unique.map((c) => ({ id: c, name: c }));
   }, [categories, catalogs]);
 
+  const isServerSide = Boolean(onSearchChange);
+  const displayed = isServerSide ? catalogs : filtered;
+  const displayedCount = total !== undefined ? total : displayed.length;
+
   return (
     <div className="space-y-6">
       {/* Category Filter & Search Control Bar */}
@@ -118,7 +133,7 @@ export function MarketList({
           <div className="flex items-center gap-2 text-xs font-semibold text-on-surface-variant">
             <TuneIcon sx={{ fontSize: 16 }} className="text-primary" />
             <span>
-              Menampilkan <strong className="text-on-surface">{filtered.length}</strong> layanan
+              Menampilkan <strong className="text-on-surface">{displayedCount}</strong> layanan
             </span>
           </div>
         </div>
@@ -153,7 +168,7 @@ export function MarketList({
         </div>
       </div>
       {/* Catalog Cards Grid */}
-      {filtered.length === 0 ? (
+      {displayed.length === 0 ? (
         <EmptyState
           title="Tidak Ada Layanan Ditemukan"
           description="Coba ubah kata kunci pencarian atau pilih kategori bimbingan lainnya."
@@ -162,7 +177,7 @@ export function MarketList({
               variant="outlined"
               size="small"
               onClick={() => {
-                setInternalQuery("");
+                handleQueryChange("");
                 handleCategoryClick(null);
               }}
               sx={{ borderRadius: 2 }}
@@ -172,12 +187,26 @@ export function MarketList({
           }
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((c) => (
-            <div key={c.id} className="h-full">
-              <CatalogCard catalog={c} />
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayed.map((c) => (
+              <div key={c.id} className="h-full">
+                <CatalogCard catalog={c} />
+              </div>
+            ))}
+          </div>
+
+          {total !== undefined && onPageChange && total > 0 && (
+            <div className="pt-4 border-t border-outline-variant/30">
+              <Pagination
+                page={page || 1}
+                perPage={perPage || 20}
+                total={total}
+                onPageChange={onPageChange}
+                onPerPageChange={onPerPageChange}
+              />
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

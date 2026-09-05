@@ -7,6 +7,7 @@ import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { TableSkeleton } from "@/components/common/SkeletonLoader";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Pagination } from "@/components/common";
 import { formatDate } from "@/lib/utils/format";
 import { getAdminTransactions, OrderListItem } from "@/lib/api/order";
 
@@ -33,6 +34,9 @@ function AdminTransactionsContent() {
   const [transactions, setTransactions] = useState<OrderListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
   const [selectedDrawer, setSelectedDrawer] = useState<OrderListItem | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const statusParam = searchParams.get("status");
@@ -41,6 +45,7 @@ function AdminTransactionsContent() {
     : "all";
 
   const handleStatusChange = (status: string) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (status === "all") params.delete("status");
     else params.set("status", status);
@@ -51,14 +56,19 @@ function AdminTransactionsContent() {
   const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getAdminTransactions(1, 100);
+      const res = await getAdminTransactions(
+        page,
+        perPage,
+        statusTab === "all" ? undefined : statusTab
+      );
       setTransactions(res?.items || (Array.isArray(res) ? res : []));
+      setTotal(res?.total || 0);
     } catch (error) {
       console.error("Failed to fetch admin transactions", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage, statusTab]);
 
   useEffect(() => {
     fetchTransactions();
@@ -389,6 +399,21 @@ function AdminTransactionsContent() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {total > 0 && (
+          <div className="p-4 border-t border-outline-variant/30">
+            <Pagination
+              page={page}
+              perPage={perPage}
+              total={total}
+              onPageChange={setPage}
+              onPerPageChange={(pp) => {
+                setPerPage(pp);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </div>

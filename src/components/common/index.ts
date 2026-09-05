@@ -5,3 +5,4 @@ export * from "./EmptyState";
 export * from "./SkeletonLoader";
 export * from "./ConfirmDialog";
 export * from "./FileUploader";
+export * from "./Pagination";

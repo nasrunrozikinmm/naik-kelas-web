@@ -7,7 +7,9 @@ import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { TableSkeleton } from "@/components/common/SkeletonLoader";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Pagination } from "@/components/common/Pagination";
 import { useConfirm } from "@/hooks/useConfirm";
+import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate, formatCurrency } from "@/lib/utils/format";
 import {
   getAdminCatalogs,
@@ -49,6 +51,10 @@ function AdminCatalogsContent() {
   const [selectedDrawer, setSelectedDrawer] = useState<Catalog | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+  const debouncedQuery = useDebounce(searchQuery, 350);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{
     type: "success" | "error";
@@ -62,6 +68,7 @@ function AdminCatalogsContent() {
     : "all";
 
   const handleStatusChange = (status: string) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (status === "all") params.delete("status");
     else params.set("status", status);
@@ -73,12 +80,19 @@ function AdminCatalogsContent() {
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [catList, categoriesRes] = await Promise.all([
-        getAdminCatalogs(),
+      const [catRes, categoriesRes] = await Promise.all([
+        getAdminCatalogs({
+          status: statusFilter === "all" ? undefined : statusFilter,
+          category_id: categoryFilter === "all" ? undefined : categoryFilter,
+          q: debouncedQuery.trim() || undefined,
+          page,
+          per_page: perPage,
+        }),
         apiClient.get(endpoints.categories.list),
       ]);
 
-      setCatalogs(catList || []);
+      setCatalogs(catRes.items || []);
+      setTotal(catRes.total || 0);
       if (categoriesRes.data?.data) {
         setCategories(categoriesRes.data.data);
       }
@@ -91,7 +105,7 @@ function AdminCatalogsContent() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [statusFilter, categoryFilter, debouncedQuery, page, perPage]);
 
   useEffect(() => {
     fetchData();
@@ -99,7 +113,7 @@ function AdminCatalogsContent() {
 
   // Statistics calculation
   const stats = useMemo(() => {
-    const total = catalogs.length;
+    const totalCount = total;
     const pending = catalogs.filter(
       (c) => c.status === "pending_review" || c.status === "pending"
     ).length;
@@ -110,47 +124,11 @@ function AdminCatalogsContent() {
       (c) => c.status === "rejected" || c.status === "archived"
     ).length;
 
-    return { total, pending, active, rejectedOrArchived };
-  }, [catalogs]);
+    return { total: totalCount, pending, active, rejectedOrArchived };
+  }, [catalogs, total]);
 
-  // Filtered Catalogs
-  const filteredCatalogs = useMemo(() => {
-    return catalogs.filter((catalog) => {
-      // Status filter
-      if (statusFilter !== "all") {
-        if (statusFilter === "active") {
-          if (catalog.status !== "active" && catalog.status !== "published") {
-            return false;
-          }
-        } else if (statusFilter === "pending_review") {
-          if (
-            catalog.status !== "pending_review" &&
-            catalog.status !== "pending"
-          ) {
-            return false;
-          }
-        } else if (catalog.status !== statusFilter) {
-          return false;
-        }
-      }
-
-      // Category filter
-      if (categoryFilter !== "all" && catalog.category_id !== categoryFilter) {
-        return false;
-      }
-
-      // Search query filter (title, description, or id)
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = catalog.title?.toLowerCase().includes(query);
-        const matchesDesc = catalog.description?.toLowerCase().includes(query);
-        const matchesId = catalog.id?.toLowerCase().includes(query);
-        if (!matchesTitle && !matchesDesc && !matchesId) return false;
-      }
-
-      return true;
-    });
-  }, [catalogs, statusFilter, categoryFilter, searchQuery]);
+  // Catalogs to display (server filtered)
+  const filteredCatalogs = catalogs;
 
   // Action: Moderation status change
   const handleModerate = async (
@@ -531,6 +509,21 @@ function AdminCatalogsContent() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {total > 0 && (
+          <div className="p-4 border-t border-outline-variant/30">
+            <Pagination
+              page={page}
+              perPage={perPage}
+              total={total}
+              onPageChange={setPage}
+              onPerPageChange={(pp) => {
+                setPerPage(pp);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </div>

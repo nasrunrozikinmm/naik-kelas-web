@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { UserListItem, UserRole, UserStatus } from '@/types/domain';
+import type { UserListItem, UserRole, UserStatus, PaginatedResult, TalentApprovalItem } from '@/types/domain';
 
 export interface AdminUserListItem extends UserListItem {
   phone?: string;
@@ -22,9 +22,41 @@ export interface AdminUpdateUserInput {
   role: 'student' | 'talent';
 }
 
-export async function getAdminUsers(): Promise<AdminUserListItem[]> {
-  const res = await apiClient.get('/admin/users');
-  return res.data?.data || [];
+export async function getAdminUsers(params?: {
+  role?: string;
+  status?: string;
+  q?: string;
+  page?: number;
+  per_page?: number;
+}): Promise<PaginatedResult<AdminUserListItem>> {
+  const res = await apiClient.get('/admin/users', { params });
+  const data = res.data?.data;
+  const items = Array.isArray(data) ? data : [];
+  return {
+    items,
+    total: res.data?.meta?.total ?? items.length,
+    page: res.data?.meta?.page ?? (params?.page || 1),
+    per_page: res.data?.meta?.per_page ?? (params?.per_page || 20),
+    total_pages: res.data?.meta?.total_pages ?? 1,
+  };
+}
+
+export async function getTalentApprovals(params?: {
+  status?: string;
+  q?: string;
+  page?: number;
+  per_page?: number;
+}): Promise<PaginatedResult<TalentApprovalItem>> {
+  const res = await apiClient.get('/admin/talent-approvals', { params });
+  const data = res.data?.data;
+  const items = Array.isArray(data) ? data : [];
+  return {
+    items,
+    total: res.data?.meta?.total ?? items.length,
+    page: res.data?.meta?.page ?? (params?.page || 1),
+    per_page: res.data?.meta?.per_page ?? (params?.per_page || 20),
+    total_pages: res.data?.meta?.total_pages ?? 1,
+  };
 }
 
 export async function createAdminUser(data: AdminCreateUserInput): Promise<AdminUserListItem> {

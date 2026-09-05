@@ -7,12 +7,16 @@ import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { TableSkeleton } from "@/components/common/SkeletonLoader";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Pagination } from "@/components/common";
 import { DynamicForm } from "@/components/dynamic-form";
 import { getCategoryFormConfig } from "@/lib/forms/categoryForm";
 import { useConfirm } from "@/hooks/useConfirm";
+import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/lib/utils/format";
 import {
   getCategories,
+  getPaginatedCategories,
+  getAllCategories,
   createCategory,
   updateCategory,
   deleteCategory,
@@ -38,8 +42,13 @@ function AdminCategoriesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+  const debouncedQuery = useDebounce(searchQuery, 350);
   const filterParam = searchParams.get("filter");
   const filterTab = ["all", "parents", "subcategories", "active", "inactive"].includes(filterParam || "")
     ? filterParam!
@@ -59,6 +68,7 @@ function AdminCategoriesContent() {
   const { confirm } = useConfirm();
 
   const handleFilterChange = (filter: string) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (filter === "all") params.delete("filter");
     else params.set("filter", filter);
@@ -69,8 +79,18 @@ function AdminCategoriesContent() {
   const fetchCategoriesList = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getCategories();
-      setCategories(data);
+      const [paginatedData, allData] = await Promise.all([
+        getPaginatedCategories({
+          q: debouncedQuery.trim() || undefined,
+          page,
+          per_page: perPage,
+          status: filterTab === "active" ? "active" : filterTab === "inactive" ? "inactive" : undefined,
+        }),
+        getAllCategories(),
+      ]);
+      setCategories(paginatedData.items || []);
+      setTotal(paginatedData.total || 0);
+      setAllCategories(allData || []);
     } catch (err) {
       console.error("Failed to load categories", err);
       setFeedbackMsg({
@@ -80,31 +100,35 @@ function AdminCategoriesContent() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [filterTab, debouncedQuery, page, perPage]);
 
   useEffect(() => {
     fetchCategoriesList();
   }, [fetchCategoriesList]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery]);
+
   // Parent Categories & Map
   const parentCategories = useMemo(() => {
-    return categories.filter((c) => !c.parent_id);
-  }, [categories]);
+    return allCategories.filter((c) => !c.parent_id);
+  }, [allCategories]);
 
   const categoryMap = useMemo(() => {
     const map = new Map<string, string>();
-    categories.forEach((c) => map.set(c.id, c.name));
+    allCategories.forEach((c) => map.set(c.id, c.name));
     return map;
-  }, [categories]);
+  }, [allCategories]);
 
   // Statistics
   const stats = useMemo(() => {
-    const total = categories.length;
-    const parents = categories.filter((c) => !c.parent_id).length;
-    const subcategories = categories.filter((c) => !!c.parent_id).length;
-    const active = categories.filter((c) => c.status === "active" || !c.status).length;
-    return { total, parents, subcategories, active };
-  }, [categories]);
+    const totalCount = allCategories.length || total;
+    const parents = allCategories.filter((c) => !c.parent_id).length;
+    const subcategories = allCategories.filter((c) => !!c.parent_id).length;
+    const active = allCategories.filter((c) => c.status === "active" || !c.status).length;
+    return { total: totalCount, parents, subcategories, active };
+  }, [allCategories, total]);
 
   // Dynamic Form Configuration
   const categoryFormConfig = useMemo(() => {
@@ -117,25 +141,10 @@ function AdminCategoriesContent() {
 
   // Filtered categories
   const filteredCategories = useMemo(() => {
-    return categories.filter((cat) => {
-      // Filter tab
-      if (filterTab === "parents" && cat.parent_id) return false;
-      if (filterTab === "subcategories" && !cat.parent_id) return false;
-      if (filterTab === "active" && cat.status === "inactive") return false;
-      if (filterTab === "inactive" && cat.status !== "inactive") return false;
-
-      // Search query
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchesName = cat.name.toLowerCase().includes(q);
-        const matchesSlug = cat.slug.toLowerCase().includes(q);
-        const parentName = cat.parent_id ? categoryMap.get(cat.parent_id)?.toLowerCase() || "" : "";
-        if (!matchesName && !matchesSlug && !parentName.includes(q)) return false;
-      }
-
-      return true;
-    });
-  }, [categories, filterTab, searchQuery, categoryMap]);
+    if (filterTab === "parents") return categories.filter((c) => !c.parent_id);
+    if (filterTab === "subcategories") return categories.filter((c) => !!c.parent_id);
+    return categories;
+  }, [categories, filterTab]);
 
   // Open Create Modal
   const handleOpenCreate = (parentId?: string) => {
@@ -495,6 +504,21 @@ function AdminCategoriesContent() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {total > 0 && (
+          <div className="p-4 border-t border-outline-variant/30">
+            <Pagination
+              page={page}
+              perPage={perPage}
+              total={total}
+              onPageChange={setPage}
+              onPerPageChange={(pp) => {
+                setPerPage(pp);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </div>

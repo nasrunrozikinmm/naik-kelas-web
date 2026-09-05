@@ -7,9 +7,11 @@ import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { TableSkeleton } from "@/components/common/SkeletonLoader";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Pagination } from "@/components/common/Pagination";
 import { DynamicForm } from "@/components/dynamic-form";
 import { getUserCreateFormConfig, getUserEditFormConfig, getUserResetPasswordFormConfig } from "@/lib/forms/userForm";
 import { useConfirm } from "@/hooks/useConfirm";
+import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/lib/utils/format";
 import {
   getAdminUsers,
@@ -64,6 +66,11 @@ function AdminUsersContent() {
   const [users, setUsers] = useState<AdminUserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+  const debouncedQuery = useDebounce(searchQuery, 350);
+
   const roleParam = searchParams.get("role");
   const roleFilter = ["all", "student", "talent", "superadministrator", "suspended"].includes(roleParam || "")
     ? roleParam!
@@ -74,6 +81,7 @@ function AdminUsersContent() {
     : "all";
 
   const updateFilter = (key: "role" | "status", value: string) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (value === "all") params.delete(key);
     else params.set(key, value);
@@ -103,8 +111,15 @@ function AdminUsersContent() {
   const fetchUsersList = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getAdminUsers();
-      setUsers(data);
+      const res = await getAdminUsers({
+        role: roleFilter === "all" ? undefined : roleFilter,
+        status: statusFilter === "all" ? undefined : statusFilter,
+        q: debouncedQuery.trim() || undefined,
+        page,
+        per_page: perPage,
+      });
+      setUsers(res.items || []);
+      setTotal(res.total || 0);
     } catch (error) {
       console.error("Failed to fetch users", error);
       setFeedbackMsg({
@@ -114,7 +129,7 @@ function AdminUsersContent() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [roleFilter, statusFilter, debouncedQuery, page, perPage]);
 
   useEffect(() => {
     fetchUsersList();
@@ -122,14 +137,14 @@ function AdminUsersContent() {
 
   // Dynamic Statistics
   const stats = useMemo(() => {
-    const total = users.length;
+    const totalCount = total;
     const students = users.filter((u) => u.roles?.includes("student") || u.role === "student" || (!u.role && (!u.roles || u.roles.length === 0))).length;
     const talents = users.filter((u) => u.roles?.includes("talent") || u.role === "talent").length;
     const admins = users.filter((u) => u.roles?.includes("superadministrator") || u.role === "superadministrator").length;
     const suspended = users.filter((u) => u.status === "suspended").length;
 
-    return { total, students, talents, admins, suspended };
-  }, [users]);
+    return { total: totalCount, students, talents, admins, suspended };
+  }, [users, total]);
 
   // Dynamic Form Configurations
   const userCreateConfig = useMemo(() => getUserCreateFormConfig(), []);
@@ -144,42 +159,8 @@ function AdminUsersContent() {
   }, [selectedUserForEdit]);
   const userResetPasswordConfig = useMemo(() => getUserResetPasswordFormConfig(), []);
 
-  // Filtered Users
-  const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      // Role filter
-      if (roleFilter !== "all") {
-        if (roleFilter === "suspended") {
-          if (u.status !== "suspended") return false;
-        } else if (roleFilter === "student") {
-          const isStudent = u.roles?.includes("student") || u.role === "student" || (!u.role && (!u.roles || u.roles.length === 0));
-          if (!isStudent) return false;
-        } else {
-          const hasRole = (u.roles as string[])?.includes(roleFilter) || u.role === roleFilter;
-          if (!hasRole) return false;
-        }
-      }
-
-      // Status filter dropdown
-      if (statusFilter !== "all" && u.status !== statusFilter) {
-        return false;
-      }
-
-      // Search query
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchesName = u.name?.toLowerCase().includes(q);
-        const matchesEmail = u.email?.toLowerCase().includes(q);
-        const matchesPhone = u.phone?.toLowerCase().includes(q);
-        const matchesId = u.id?.toLowerCase().includes(q);
-        if (!matchesName && !matchesEmail && !matchesPhone && !matchesId) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [users, roleFilter, statusFilter, searchQuery]);
+  // Filtered Users (server filtered)
+  const filteredUsers = users;
 
   // Action: Create User with DynamicForm
   const handleCreateSubmit = async (data: Record<string, unknown>) => {
@@ -640,6 +621,21 @@ function AdminUsersContent() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {total > 0 && (
+          <div className="p-4 border-t border-outline-variant/30">
+            <Pagination
+              page={page}
+              perPage={perPage}
+              total={total}
+              onPageChange={setPage}
+              onPerPageChange={(pp) => {
+                setPerPage(pp);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </div>

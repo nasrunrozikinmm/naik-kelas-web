@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Script from "next/script";
 import { getMyOrders, OrderListItem } from "@/lib/api/order";
+import { Pagination } from "@/components/common";
 import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Button, CircularProgress } from "@mui/material";
 import dayjs from "dayjs";
 import { loadSnapScript } from "@/lib/utils/midtrans";
@@ -10,22 +11,26 @@ import { loadSnapScript } from "@/lib/utils/midtrans";
 export default function StudentOrdersPage() {
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getMyOrders(1, 50);
+      const res = await getMyOrders(page, perPage);
       setOrders(res?.items || (Array.isArray(res) ? res : []));
+      setTotal(res?.total || 0);
     } catch (error) {
       console.error("Failed to fetch orders", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, perPage]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const formatRupiah = (amount: number) => 
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(amount);
@@ -142,6 +147,21 @@ export default function StudentOrdersPage() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {total > 0 && (
+        <div className="mt-4 p-4 bg-white dark:bg-surface-container-low rounded-2xl border border-outline-variant/30">
+          <Pagination
+            page={page}
+            perPage={perPage}
+            total={total}
+            onPageChange={setPage}
+            onPerPageChange={(pp) => {
+              setPerPage(pp);
+              setPage(1);
+            }}
+          />
+        </div>
+      )}
     </Box>
   );
 }

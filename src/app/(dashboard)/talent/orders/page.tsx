@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PageHeader, StatCard, StatusBadge, EmptyState, TableSkeleton } from "@/components/common";
+import { PageHeader, StatCard, StatusBadge, EmptyState, TableSkeleton, Pagination } from "@/components/common";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { getTalentOrders, OrderListItem } from "@/lib/api/order";
 
@@ -27,6 +27,9 @@ function TalentOrdersContent() {
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
   const [selectedDrawer, setSelectedDrawer] = useState<OrderListItem | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const statusParam = searchParams.get("status");
@@ -37,20 +40,26 @@ function TalentOrdersContent() {
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getTalentOrders(1, 100);
+      const res = await getTalentOrders(
+        page,
+        perPage,
+        statusFilter === "all" ? undefined : statusFilter
+      );
       setOrders(res?.items || (Array.isArray(res) ? res : []));
+      setTotal(res?.total || 0);
     } catch (error) {
       console.error("Failed to fetch talent orders", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage, statusFilter]);
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
   const handleStatusChange = (status: string) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (status === "all") {
       params.delete("status");
@@ -360,6 +369,21 @@ function TalentOrdersContent() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {total > 0 && (
+          <div className="p-4 border-t border-outline-variant/30">
+            <Pagination
+              page={page}
+              perPage={perPage}
+              total={total}
+              onPageChange={setPage}
+              onPerPageChange={(pp) => {
+                setPerPage(pp);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </div>

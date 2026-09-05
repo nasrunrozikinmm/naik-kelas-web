@@ -10,6 +10,9 @@ import { MentorSpotlight } from "@/components/marketplace/MentorSpotlight";
 import { CardSkeleton } from "@/components/common/SkeletonLoader";
 import { apiClient } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
+import { getCatalogs } from "@/lib/api/catalog";
+import { getCategories } from "@/lib/api/category";
+import { useDebounce } from "@/hooks/useDebounce";
 import type { CatalogCardModel, Category } from "@/types/domain";
 
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
@@ -54,6 +57,9 @@ function MarketplaceContent() {
   const searchParams = useSearchParams();
   const [catalogs, setCatalogs] = useState<CatalogCardModel[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(12);
+  const [total, setTotal] = useState<number>(0);
   const categoryParam = searchParams.get("category");
   const selectedCategory =
     categories.find(
@@ -63,52 +69,49 @@ function MarketplaceContent() {
         category.name === categoryParam,
     )?.id || categoryParam;
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const debouncedQuery = useDebounce(searchQuery, 350);
   const [loading, setLoading] = useState(true);
 
+  // Load categories once on mount
+  useEffect(() => {
+    let isMounted = true;
+    getCategories()
+      .then((cats) => {
+        if (isMounted && Array.isArray(cats)) {
+          setCategories(cats);
+        }
+      })
+      .catch((err) => console.warn("Failed to fetch categories", err));
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fetch catalogs with server-side pagination, category filter, and keyword search
   useEffect(() => {
     let isMounted = true;
 
-    const fetchData = async () => {
+    const fetchMarketplaceCatalogs = async () => {
       try {
-        const [catRes, cataRes] = await Promise.all([
-          apiClient.get(endpoints.categories.list).catch(() => null),
-          apiClient
-            .get(`${endpoints.catalog.list}?status=published`)
-            .catch(() => null),
-        ]);
+        setLoading(true);
+        const res = await getCatalogs({
+          status: "published",
+          category_id: selectedCategory || undefined,
+          q: debouncedQuery.trim() || undefined,
+          page,
+          per_page: perPage,
+        });
 
         if (isMounted) {
-          const apiCats = catRes?.data?.data;
-          const apiCatalogs = cataRes?.data?.data;
-
-          if (apiCats && Array.isArray(apiCats)) {
-            setCategories(apiCats);
-            const activeCategory = apiCats.find(
-              (category: Category) =>
-                category.id === categoryParam ||
-                category.slug === categoryParam ||
-                category.name === categoryParam,
-            );
-            if (activeCategory && categoryParam !== activeCategory.slug) {
-              const params = new URLSearchParams(searchParams.toString());
-              params.set(
-                "category",
-                activeCategory.slug || activeCategory.name,
-              );
-              router.replace(`?${params.toString()}`, { scroll: false });
-            }
-          }
-
-          if (apiCatalogs && Array.isArray(apiCatalogs)) {
-            setCatalogs(apiCatalogs.map(enrichCatalogWithTalent));
-          } else {
-            setCatalogs([]);
-          }
+          setCatalogs(res.items.map(enrichCatalogWithTalent));
+          setTotal(res.total);
         }
       } catch (error) {
-        console.warn("Failed to fetch marketplace data", error);
+        console.warn("Failed to fetch marketplace catalogs", error);
         if (isMounted) {
           setCatalogs([]);
+          setTotal(0);
         }
       } finally {
         if (isMounted) {
@@ -117,14 +120,15 @@ function MarketplaceContent() {
       }
     };
 
-    fetchData();
+    fetchMarketplaceCatalogs();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [selectedCategory, debouncedQuery, page, perPage]);
 
   const handleShortcutSelect = (keyword: string) => {
+    setPage(1);
     const matched = categories.find(
       (c) =>
         c.name.toLowerCase().includes(keyword.toLowerCase()) ||
@@ -140,6 +144,7 @@ function MarketplaceContent() {
   };
 
   const updateCategory = (categoryId: string | null) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     const category = categories.find((item) => item.id === categoryId);
     if (categoryId)
@@ -150,6 +155,7 @@ function MarketplaceContent() {
   };
 
   const handleMentorSelect = (mentorName: string) => {
+    setPage(1);
     updateCategory(null);
     setSearchQuery(mentorName);
   };
@@ -270,7 +276,18 @@ function MarketplaceContent() {
               selectedCategory={selectedCategory}
               onSelectCategory={updateCategory}
               searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
+              onSearchChange={(q) => {
+                setSearchQuery(q);
+                setPage(1);
+              }}
+              page={page}
+              perPage={perPage}
+              total={total}
+              onPageChange={setPage}
+              onPerPageChange={(pp) => {
+                setPerPage(pp);
+                setPage(1);
+              }}
             />
           )}
         </section>

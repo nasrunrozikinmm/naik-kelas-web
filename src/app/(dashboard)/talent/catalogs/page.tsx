@@ -15,8 +15,10 @@ import {
   StatusBadge,
   EmptyState,
   TableSkeleton,
+  Pagination,
 } from "@/components/common";
 import { useConfirm } from "@/hooks/useConfirm";
+import { useDebounce } from "@/hooks/useDebounce";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { getMyCatalogs, deleteCatalog } from "@/lib/api/catalog";
 import {
@@ -47,6 +49,11 @@ function TalentCatalogsContent() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+  const debouncedQuery = useDebounce(searchQuery, 350);
+
   const statusParam = searchParams.get("status");
   const statusFilter = CATALOG_STATUS_TABS.some((tab) => tab.id === statusParam)
     ? statusParam!
@@ -55,20 +62,32 @@ function TalentCatalogsContent() {
   const fetchCatalogs = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getMyCatalogs();
-      setCatalogs(data);
+      const res = await getMyCatalogs({
+        status: statusFilter === "all" ? undefined : statusFilter,
+        type: typeFilter === "all" ? undefined : typeFilter,
+        q: debouncedQuery.trim() || undefined,
+        page,
+        per_page: perPage,
+      });
+      setCatalogs(res.items || []);
+      setTotal(res.total || 0);
     } catch (error) {
       console.error("Failed to fetch talent catalogs", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusFilter, typeFilter, debouncedQuery, page, perPage]);
 
   useEffect(() => {
     fetchCatalogs();
   }, [fetchCatalogs]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, typeFilter]);
+
   const handleStatusChange = (status: string) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (status === "all") {
       params.delete("status");
@@ -97,38 +116,16 @@ function TalentCatalogsContent() {
 
     try {
       await deleteCatalog(catalog.id);
-      setCatalogs((prev) => prev.filter((c) => c.id !== catalog.id));
+      fetchCatalogs();
     } catch (error) {
       console.error("Failed to delete catalog", error);
     }
   };
 
-  const filteredCatalogs = useMemo(() => {
-    return catalogs.filter((cat) => {
-      // Search
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        const matchesTitle = cat.title?.toLowerCase().includes(q);
-        const matchesCategory = cat.category?.name?.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesCategory) return false;
-      }
-
-      // Status
-      if (statusFilter !== "all" && cat.status !== statusFilter) {
-        return false;
-      }
-
-      // Type
-      if (typeFilter !== "all" && cat.type !== typeFilter) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [catalogs, searchQuery, statusFilter, typeFilter]);
+  const filteredCatalogs = catalogs;
 
   // Statistics
-  const totalCount = catalogs.length;
+  const totalCount = total;
   const activeCount = catalogs.filter(
     (c) => c.status === "published" || c.status === "active",
   ).length;
@@ -399,6 +396,21 @@ function TalentCatalogsContent() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {total > 0 && (
+          <div className="p-4 border-t border-outline-variant/30">
+            <Pagination
+              page={page}
+              perPage={perPage}
+              total={total}
+              onPageChange={setPage}
+              onPerPageChange={(pp) => {
+                setPerPage(pp);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </div>

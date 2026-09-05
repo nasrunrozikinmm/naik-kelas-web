@@ -8,10 +8,13 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { TableSkeleton } from "@/components/common/SkeletonLoader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FileUploader } from "@/components/common/FileUploader";
+import { Pagination } from "@/components/common";
 import { useConfirm } from "@/hooks/useConfirm";
+import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/lib/utils/format";
 import { apiClient } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
+import { getTalentApprovals } from "@/lib/api/adminUser";
 import type { TalentApprovalItem, TalentKYCDocuments } from "@/types/domain";
 
 // MUI Icons
@@ -38,6 +41,10 @@ function TalentApprovalContent() {
   const [selectedDrawer, setSelectedDrawer] = useState<TalentApprovalItem | null>(null);
   const [expertiseFilter, setExpertiseFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+  const debouncedQuery = useDebounce(searchQuery, 350);
   const [showRejection, setShowRejection] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -53,6 +60,7 @@ function TalentApprovalContent() {
     : "all";
 
   const handleStatusChange = (status: string) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (status === "all") params.delete("status");
     else params.set("status", status);
@@ -64,10 +72,14 @@ function TalentApprovalContent() {
   const fetchRequests = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await apiClient.get(endpoints.admin.talentApprovals + "?status=all");
-      if (res.data?.success && Array.isArray(res.data.data)) {
-        setRequests(res.data.data);
-      }
+      const res = await getTalentApprovals({
+        status: statusFilter === "all" ? undefined : statusFilter,
+        q: debouncedQuery.trim() || undefined,
+        page,
+        per_page: perPage,
+      });
+      setRequests(res.items || []);
+      setTotal(res.total || 0);
     } catch (error) {
       console.error("Failed to fetch approvals", error);
       setFeedbackMsg({
@@ -77,15 +89,19 @@ function TalentApprovalContent() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [statusFilter, debouncedQuery, page, perPage]);
 
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery]);
+
   // Dynamic statistics
   const stats = useMemo(() => {
-    const total = requests.length;
+    const totalCount = total;
     const pending = requests.filter(
       (r) => r.verification_status === "pending" || !r.verification_status
     ).length;
@@ -96,8 +112,8 @@ function TalentApprovalContent() {
       (r) => r.verification_status === "rejected"
     ).length;
 
-    return { total, pending, verified, rejected };
-  }, [requests]);
+    return { total: totalCount, pending, verified, rejected };
+  }, [requests, total]);
 
   // Unique expertise list for dropdown filter
   const expertiseList = useMemo(() => {
@@ -110,44 +126,11 @@ function TalentApprovalContent() {
     return Array.from(set);
   }, [requests]);
 
-  // Filtered requests based on status, expertise, and search query
+  // Filtered requests based on expertise (search and status handled server-side)
   const filteredRequests = useMemo(() => {
-    return requests.filter((item) => {
-      // Status filter
-      if (statusFilter !== "all") {
-        if (statusFilter === "pending") {
-          if (item.verification_status !== "pending" && item.verification_status) {
-            return false;
-          }
-        } else if (statusFilter === "verified") {
-          if (item.verification_status !== "verified" && item.verification_status !== "approved") {
-            return false;
-          }
-        } else if (item.verification_status !== statusFilter) {
-          return false;
-        }
-      }
-
-      // Expertise filter
-      if (expertiseFilter !== "all" && item.expertise !== expertiseFilter) {
-        return false;
-      }
-
-      // Search query filter (name, user_id, bio, or expertise)
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesName = item.display_name?.toLowerCase().includes(query);
-        const matchesId = item.user_id?.toLowerCase().includes(query);
-        const matchesExpertise = item.expertise?.toLowerCase().includes(query);
-        const matchesBio = item.bio?.toLowerCase().includes(query);
-        if (!matchesName && !matchesId && !matchesExpertise && !matchesBio) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [requests, statusFilter, expertiseFilter, searchQuery]);
+    if (expertiseFilter === "all") return requests;
+    return requests.filter((item) => item.expertise === expertiseFilter);
+  }, [requests, expertiseFilter]);
 
   // Helper to parse KYC documents JSON
   const parseDocuments = (docStr?: string): TalentKYCDocuments | null => {
@@ -532,6 +515,21 @@ function TalentApprovalContent() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {total > 0 && (
+          <div className="p-4 border-t border-outline-variant/30">
+            <Pagination
+              page={page}
+              perPage={perPage}
+              total={total}
+              onPageChange={setPage}
+              onPerPageChange={(pp) => {
+                setPerPage(pp);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </div>

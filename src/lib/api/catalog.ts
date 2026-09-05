@@ -1,5 +1,48 @@
 import apiClient from './client';
-import type { Catalog, ScheduleSlot } from '@/types/domain';
+import type { Catalog, ScheduleSlot, PaginatedResult } from '@/types/domain';
+
+export interface CatalogQueryParams {
+  status?: string;
+  category_id?: string;
+  talent_profile_id?: string;
+  type?: string;
+  q?: string;
+  page?: number;
+  per_page?: number;
+  sort?: string;
+}
+
+export async function getCatalogs(params?: CatalogQueryParams): Promise<PaginatedResult<Catalog>> {
+  const res = await apiClient.get('/catalogs', { params });
+  const data = res.data?.data;
+  const items = Array.isArray(data) ? data : [];
+  return {
+    items,
+    total: res.data?.meta?.total ?? items.length,
+    page: res.data?.meta?.page ?? (params?.page || 1),
+    per_page: res.data?.meta?.per_page ?? (params?.per_page || 20),
+    total_pages: res.data?.meta?.total_pages ?? 1,
+  };
+}
+
+export async function getMyCatalogs(params?: {
+  status?: string;
+  type?: string;
+  q?: string;
+  page?: number;
+  per_page?: number;
+}): Promise<PaginatedResult<Catalog>> {
+  const res = await apiClient.get('/catalogs/me', { params });
+  const data = res.data?.data;
+  const items = Array.isArray(data) ? data : [];
+  return {
+    items,
+    total: res.data?.meta?.total ?? items.length,
+    page: res.data?.meta?.page ?? (params?.page || 1),
+    per_page: res.data?.meta?.per_page ?? (params?.per_page || 20),
+    total_pages: res.data?.meta?.total_pages ?? 1,
+  };
+}
 
 export interface CatalogCreateInput {
   category_id: string;
@@ -37,11 +80,6 @@ export interface ScheduleSlotInput {
   capacity: number;
 }
 
-export async function getMyCatalogs(params?: { status?: string; type?: string }): Promise<Catalog[]> {
-  const res = await apiClient.get('/catalogs/me', { params });
-  return res.data?.data || [];
-}
-
 export async function getCatalog(id: string): Promise<Catalog> {
   const res = await apiClient.get(`/catalogs/${id}`);
   return res.data?.data;
@@ -70,12 +108,22 @@ export async function getAdminCatalogs(params?: {
   status?: string;
   category_id?: string;
   talent_profile_id?: string;
+  type?: string;
+  q?: string;
   page?: number;
   per_page?: number;
   sort?: string;
-}): Promise<Catalog[]> {
+}): Promise<PaginatedResult<Catalog>> {
   const res = await apiClient.get('/catalogs', { params });
-  return res.data?.data || [];
+  const data = res.data?.data;
+  const items = Array.isArray(data) ? data : [];
+  return {
+    items,
+    total: res.data?.meta?.total ?? items.length,
+    page: res.data?.meta?.page ?? (params?.page || 1),
+    per_page: res.data?.meta?.per_page ?? (params?.per_page || 20),
+    total_pages: res.data?.meta?.total_pages ?? 1,
+  };
 }
 
 export async function moderateCatalogStatus(

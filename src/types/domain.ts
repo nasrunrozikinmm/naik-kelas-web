@@ -175,12 +175,27 @@ export interface TalentApprovalItem {
   documents: string;
 }
 
+export interface PaginationMeta {
+  request_id?: string;
+  page?: number;
+  per_page?: number;
+  total?: number;
+  total_pages?: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   code: number;
   data: T;
-  meta?: {
-    request_id?: string;
+  meta?: PaginationMeta & {
     pagination?: {
       page: number;
       per_page: number;
