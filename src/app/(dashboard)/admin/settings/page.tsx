@@ -277,7 +277,7 @@ function AdminSettingsContent() {
                 isLoading={submitting}
                 submitButtonSx={{
                   bgcolor: "var(--color-primary, #1a56db)",
-                  "&:hover": { bgcolor: "#1e40af" },
+                  "&:hover": { bgcolor: "var(--color-primary-container)" },
                   color: "#ffffff !important",
                   borderRadius: "10px",
                   fontSize: "0.75rem",
@@ -305,7 +305,7 @@ function AdminSettingsContent() {
                 isLoading={submitting}
                 submitButtonSx={{
                   bgcolor: "var(--color-primary, #1a56db)",
-                  "&:hover": { bgcolor: "#1e40af" },
+                  "&:hover": { bgcolor: "var(--color-primary-container)" },
                   color: "#ffffff !important",
                   borderRadius: "10px",
                   fontSize: "0.75rem",
@@ -331,7 +331,7 @@ function AdminSettingsContent() {
                 isLoading={submitting}
                 submitButtonSx={{
                   bgcolor: "var(--color-primary, #1a56db)",
-                  "&:hover": { bgcolor: "#1e40af" },
+                  "&:hover": { bgcolor: "var(--color-primary-container)" },
                   color: "#ffffff !important",
                   borderRadius: "10px",
                   fontSize: "0.75rem",

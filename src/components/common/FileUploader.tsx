@@ -308,7 +308,7 @@ export function FileUploader({
             <iframe
               src={value}
               title={displayName}
-              className="h-[72vh] w-full rounded-xl border border-outline-variant/30 bg-white"
+              className="h-[72vh] w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest"
             />
           ) : (
             <div className="space-y-3 p-8 text-center">

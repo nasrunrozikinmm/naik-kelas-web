@@ -255,7 +255,7 @@ function AdminCategoriesContent() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="pb-12">
       {/* Page Header */}
       <PageHeader
         title="Manajemen Kategori"

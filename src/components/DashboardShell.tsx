@@ -71,6 +71,33 @@ const ADMIN_NAV: NavItem[] = [
   { label: "Pengaturan", icon: <SettingsOutlinedIcon sx={{ fontSize: 20 }} />, href: "/admin/settings" },
 ];
 
+const PAGE_TITLES: Record<string, string> = {
+  "/admin/dashboard": "Dashboard",
+  "/admin/catalogs": "Moderasi Layanan",
+  "/admin/talent-approval": "Persetujuan Talent",
+  "/admin/users": "Manajemen User",
+  "/admin/transactions": "Transaksi",
+  "/admin/categories": "Kategori",
+  "/admin/settings": "Pengaturan",
+  "/student/dashboard": "Dashboard",
+  "/student/orders": "Pesanan Saya",
+  "/student/settings": "Pengaturan",
+  "/talent/dashboard": "Dashboard",
+  "/talent/orders": "Order Masuk",
+  "/talent/profile": "Profil Publik & KYC",
+  "/talent/catalogs": "Layanan Saya",
+  "/talent/catalogs/new": "Buat Layanan Baru",
+  "/talent/settings": "Pengaturan",
+};
+
+function getPageTitle(pathname: string, navItems: NavItem[]) {
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+
+  return navItems
+    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
+    .sort((first, second) => second.href.length - first.href.length)[0]?.label || "Dashboard";
+}
+
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { displayName, activeRole, logout, isTalent, isAdmin } = useAuth();
@@ -78,15 +105,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   let navItems: NavItem[] = STUDENT_NAV;
-  let title = "Dashboard Siswa";
 
   if (isTalent) {
     navItems = TALENT_NAV;
-    title = "Dashboard Talent";
   } else if (isAdmin) {
     navItems = ADMIN_NAV;
-    title = "Admin Dashboard";
   }
+
+  const workspaceLabel = isAdmin ? "Admin" : isTalent ? "Talent" : "Siswa";
+  const pageTitle = getPageTitle(pathname, navItems);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
@@ -180,7 +207,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             >
               <MenuIcon sx={{ fontSize: 22 }} />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-on-surface tracking-tight">{title}</h1>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                {workspaceLabel}
+              </p>
+              <h1 className="text-lg sm:text-xl font-bold text-on-surface tracking-tight">{pageTitle}</h1>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -203,7 +235,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Scrollable Main Viewport */}
-        <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 overflow-y-auto custom-scrollbar pb-24 md:pb-12">
+        {/* <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 overflow-y-auto custom-scrollbar pb-24 md:pb-12"> */}
+        <div className="flex-1 w-full p-4 sm:p-6 lg:p-8 overflow-y-auto custom-scrollbar pb-24 md:pb-12">
           {children}
         </div>
       </main>

@@ -28,7 +28,7 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Consultation Widget */}
-        <div className="md:col-span-4 p-8 rounded-2xl bg-white/70 backdrop-blur-md border border-primary/20 flex flex-col justify-between shadow-sm">
+        <div className="md:col-span-4 p-8 rounded-2xl bg-surface-container-lowest/70 backdrop-blur-md border border-primary/20 flex flex-col justify-between shadow-sm">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-primary font-bold text-sm uppercase tracking-wider">Konsultasi Aktif</p>
@@ -58,7 +58,7 @@ export default function StudentDashboardPage() {
         <div className="lg:col-span-2 space-y-8">
           {/* Summary Quick Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-outline-variant flex items-center gap-4 hover:-translate-y-1 transition-transform">
+            <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex items-center gap-4 hover:-translate-y-1 transition-transform">
               <div className="w-12 h-12 rounded-lg bg-secondary-container/20 text-secondary flex items-center justify-center">
                 <span className="material-symbols-outlined">pending_actions</span>
               </div>
@@ -67,7 +67,7 @@ export default function StudentDashboardPage() {
                 <p className="text-xl font-bold">3 Pesanan</p>
               </div>
             </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-outline-variant flex items-center gap-4 hover:-translate-y-1 transition-transform">
+            <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex items-center gap-4 hover:-translate-y-1 transition-transform">
               <div className="w-12 h-12 rounded-lg bg-primary-container/20 text-primary flex items-center justify-center">
                 <span className="material-symbols-outlined">event_available</span>
               </div>
@@ -79,7 +79,7 @@ export default function StudentDashboardPage() {
           </div>
 
           {/* Materi Terakhir Diakses */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-outline-variant">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-headline-md text-xl font-bold">Materi Terakhir Diakses</h3>
               <Link href="/student/courses" className="text-primary font-bold text-sm hover:underline">
@@ -138,7 +138,7 @@ export default function StudentDashboardPage() {
           </div>
 
           {/* Status Pembayaran Table */}
-          <div className="bg-white rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
             <div className="p-6 border-b border-outline-variant">
               <h3 className="font-headline-md text-xl font-bold">Status Pembayaran Terakhir</h3>
             </div>
@@ -161,7 +161,7 @@ export default function StudentDashboardPage() {
                     <td className="px-6 py-4 text-sm text-on-surface-variant">10 Mei 2024</td>
                     <td className="px-6 py-4 text-sm font-bold text-right">Rp 450.000</td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">Aktif</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">Aktif</span>
                     </td>
                   </tr>
                   <tr>
@@ -172,7 +172,7 @@ export default function StudentDashboardPage() {
                     <td className="px-6 py-4 text-sm text-on-surface-variant">Kemarin</td>
                     <td className="px-6 py-4 text-sm font-bold text-right">Rp 750.000</td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FAB0051a] text-[#976F00]">Menunggu</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">Menunggu</span>
                     </td>
                   </tr>
                 </tbody>
@@ -184,7 +184,7 @@ export default function StudentDashboardPage() {
         {/* Right Sidebar Content */}
         <div className="space-y-8">
           {/* Sesi Mendatang Widget */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-outline-variant">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant">
             <h3 className="font-bold text-on-surface mb-4">Sesi Mendatang</h3>
             <div className="space-y-4">
               <div className="p-4 rounded-xl border border-primary/10 bg-primary-container/5">
@@ -217,7 +217,7 @@ export default function StudentDashboardPage() {
           </div>
 
           {/* Progress Belajar Widget */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-outline-variant relative overflow-hidden">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant relative overflow-hidden">
             <h3 className="font-bold text-on-surface mb-6">Progres Mingguan</h3>
             <div className="flex items-end justify-between h-32 gap-2">
               <div className="flex flex-col items-center gap-2 flex-1">

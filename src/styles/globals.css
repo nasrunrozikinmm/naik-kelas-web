@@ -48,6 +48,8 @@
   --color-primary-fixed: #dbe1ff;
   --color-surface-container-lowest: #ffffff;
   --color-secondary-container: #fd761a;
+  --color-success-container: #dcfce7;
+  --color-on-success-container: #166534;
 
   --spacing-margin-desktop: 40px;
   --spacing-container-max-width: 1280px;
@@ -56,6 +58,10 @@
   --spacing-margin-mobile: 16px;
   --spacing-gutter: 24px;
   --spacing-stack-lg: 32px;
+}
+
+:root {
+  color-scheme: light;
 }
 
 .dark {
@@ -85,13 +91,13 @@
   --color-on-error: #ffffff;
   --color-error-container: #7f1d1d;
   --color-on-error-container: #fecaca;
+  --color-secondary-fixed: #7c2d12;
+  --color-on-secondary-fixed: #ffedd5;
+  --color-secondary-fixed-dim: #fdba74;
+  --color-primary-fixed-dim: #93c5fd;
 }
 
 @custom-variant dark (&:is(.dark *));
-
-:root {
-  color-scheme: light;
-}
 
 * {
   box-sizing: border-box;

@@ -375,7 +375,7 @@ export default function TalentProfilePage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="flex-1 w-full mx-auto space-y-8">
       {/* Verification Timeline Header */}
       <section className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">

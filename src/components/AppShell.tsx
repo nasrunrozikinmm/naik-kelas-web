@@ -191,44 +191,44 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Responsive Footer */}
-      <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 py-12 mt-auto">
+      <footer className="bg-surface-container-low text-on-surface-variant border-t border-outline-variant py-12 mt-auto">
         <div className="max-w-7xl mx-auto px-6 lg:px-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <BrandLogo size="md" textClassName="text-primary-fixed-dim" variant="dark" />
+            <BrandLogo size="md" variant="auto" />
             <p className="text-sm pr-4 opacity-80 leading-relaxed">
               Membangun masa depan pendidikan Indonesia melalui kolaborasi mentor terverifikasi dan siswa berprestasi.
             </p>
             <div className="flex gap-4 pt-2">
-              <a className="text-primary-fixed-dim hover:scale-110 transition-transform" href="#" aria-label="Website">
+              <a className="text-primary hover:scale-110 transition-transform" href="#" aria-label="Website">
                 <PublicIcon sx={{ fontSize: 20 }} />
               </a>
-              <a className="text-primary-fixed-dim hover:scale-110 transition-transform" href="#" aria-label="Bagikan">
+              <a className="text-primary hover:scale-110 transition-transform" href="#" aria-label="Bagikan">
                 <ShareIcon sx={{ fontSize: 20 }} />
               </a>
             </div>
           </div>
           <div>
-            <h4 className="font-semibold text-white mb-4 text-sm tracking-wider uppercase">Platform</h4>
+            <h4 className="font-semibold text-on-surface mb-4 text-sm tracking-wider uppercase">Platform</h4>
             <ul className="space-y-2 text-sm opacity-80">
-              <li><Link className="hover:text-white transition-colors" href="/catalog/mentoring">Mentoring 1-on-1</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/catalog/course">Video Course</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/talent/register">Menjadi Mentor</Link></li>
+              <li><Link className="hover:text-primary transition-colors" href="/catalog/mentoring">Mentoring 1-on-1</Link></li>
+              <li><Link className="hover:text-primary transition-colors" href="/catalog/course">Video Course</Link></li>
+              <li><Link className="hover:text-primary transition-colors" href="/talent/register">Menjadi Mentor</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-white mb-4 text-sm tracking-wider uppercase">Bantuan</h4>
+            <h4 className="font-semibold text-on-surface mb-4 text-sm tracking-wider uppercase">Bantuan</h4>
             <ul className="space-y-2 text-sm opacity-80">
-              <li><a className="hover:text-white transition-colors" href="#">Pusat Bantuan</a></li>
-              <li><a className="hover:text-white transition-colors" href="#">Kebijakan Privasi</a></li>
-              <li><a className="hover:text-white transition-colors" href="#">Syarat & Ketentuan</a></li>
+              <li><a className="hover:text-primary transition-colors" href="#">Pusat Bantuan</a></li>
+              <li><a className="hover:text-primary transition-colors" href="#">Kebijakan Privasi</a></li>
+              <li><a className="hover:text-primary transition-colors" href="#">Syarat & Ketentuan</a></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-white mb-4 text-sm tracking-wider uppercase">Newsletter</h4>
+            <h4 className="font-semibold text-on-surface mb-4 text-sm tracking-wider uppercase">Newsletter</h4>
             <p className="text-xs mb-3 opacity-80">Dapatkan info beasiswa dan promo materi terbaru.</p>
             <div className="flex gap-2">
               <input
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-hidden flex-1 w-full text-white placeholder-slate-400"
+                className="bg-surface-container border border-outline-variant rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-hidden flex-1 w-full text-on-surface placeholder:text-on-surface-variant"
                 placeholder="Email Anda"
                 type="email"
               />
@@ -241,7 +241,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 mt-10 pt-6 border-t border-slate-800/80 text-center">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 mt-10 pt-6 border-t border-outline-variant/80 text-center">
           <p className="text-xs opacity-60">© 2026 Naik Kelas Online Education. Hak cipta dilindungi undang-undang.</p>
         </div>
       </footer>

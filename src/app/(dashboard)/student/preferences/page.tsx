@@ -103,9 +103,9 @@ export default function StudentPreferencesPage() {
         </p>
       </div>
 
-      <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, border: "1px solid #e0e0e0" }}>
+      <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, border: "1px solid var(--color-outline-variant)", backgroundColor: "var(--color-surface-container-lowest)", color: "var(--color-on-surface)" }}>
         {success && (
-          <Box sx={{ mb: 3, p: 2, bgcolor: "#dcfce7", color: "#166534", borderRadius: 2 }}>
+          <Box sx={{ mb: 3, p: 2, bgcolor: "var(--color-success-container)", color: "var(--color-on-success-container)", borderRadius: 2 }}>
             <Typography variant="body2" fontWeight="bold">Preferensi berhasil disimpan!</Typography>
           </Box>
         )}
@@ -115,8 +115,8 @@ export default function StudentPreferencesPage() {
           isLoading={isLoading}
           globalError={globalError}
           submitButtonSx={{
-            bgcolor: "#1a56db",
-            "&:hover": { bgcolor: "#1e40af" },
+            bgcolor: "var(--color-primary)",
+            "&:hover": { bgcolor: "var(--color-primary-container)" },
             fontFamily: "Plus Jakarta Sans, sans-serif",
             py: 1.5,
             mt: 2
